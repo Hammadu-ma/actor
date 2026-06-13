@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { db, auth } from '../config/firebase';
+import { db } from '../config/firebase';
 import { 
   collection, getDocs, doc, updateDoc, 
   serverTimestamp, query, orderBy 
@@ -28,8 +28,8 @@ const Payments = () => {
   });
 
   useEffect(() => {
-    loadData();
-  }, []);
+  loadData();
+}, [loadData]); 
 
   const loadData = async () => {
     try {

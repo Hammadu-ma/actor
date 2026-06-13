@@ -122,7 +122,7 @@ const Reminders = () => {
     message = message.replace(/{reminderNumber}/g, reminderCount === 1 ? "1st" : reminderCount === 2 ? "2nd" : "3rd");
     
     return message;
-  }, [currentTemplate, getCurrentMonthInfo]);
+  }, [currentTemplate, getCurrentMonthInfo, templates]);
 
   const sendReminder = useCallback(async (member, reminderCount = 1) => {
     if (!member.telegram || member.telegram.trim() === "") {

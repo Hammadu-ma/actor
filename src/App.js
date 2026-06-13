@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Payments from './pages/Payments.jsx';  // Changed from .js to .jsx
 import Members from './pages/Members.jsx';    // Changed from .js to .jsx
