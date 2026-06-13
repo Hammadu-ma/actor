@@ -1683,3 +1683,1700 @@ body {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
+/* ============================================
+   MEMBERS PAGE - ADDITIONAL STYLES
+   Extends unified design system for members
+   ============================================ */
+
+/* Status Badge Styles */
+.status-badge {
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-badge.paid {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.status-badge.unpaid {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+/* Card Details Section */
+.card-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 12px 0;
+  padding: 8px 0;
+}
+
+.card-details span {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-tertiary);
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  transition: var(--transition-base);
+}
+
+.card-details span:hover {
+  background: var(--border-medium);
+  transform: translateY(-1px);
+}
+
+.card-details span i {
+  font-size: 11px;
+  color: var(--primary);
+  width: 14px;
+}
+
+/* Action Buttons for Members */
+.action-btn {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-base);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.action-btn.remind {
+  background: #e0f2fe;
+  color: var(--telegram);
+}
+
+.action-btn.remind:hover {
+  background: #bae6fd;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 136, 204, 0.2);
+}
+
+.action-btn.edit {
+  background: #f1f5f9;
+  color: var(--text-secondary);
+}
+
+.action-btn.edit:hover {
+  background: #e2e8f0;
+  transform: translateY(-2px);
+  color: var(--primary);
+}
+
+.action-btn.delete {
+  background: #fee2e2;
+  color: var(--danger);
+}
+
+.action-btn.delete:hover {
+  background: #fecaca;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+/* Card Checkbox for Selection */
+.card-checkbox {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--primary);
+  z-index: 1;
+  border-radius: 6px;
+  transition: var(--transition-base);
+}
+
+.card-checkbox:hover {
+  transform: scale(1.1);
+}
+
+/* Selected Card State */
+.payment-card.selected {
+  background: linear-gradient(135deg, #ffffff, #eff6ff);
+  border: 2px solid var(--primary);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+}
+
+/* Bulk Actions Bar Specific */
+.bulk-actions-bar {
+  position: fixed;
+  bottom: 20px;
+  left: 16px;
+  right: 16px;
+  background: var(--text-primary);
+  border-radius: var(--radius-full);
+  padding: 12px 24px;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  z-index: var(--z-high);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bulk-actions-bar.show {
+  display: flex;
+  animation: slideUp 0.3s ease;
+}
+
+.bulk-selected {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bulk-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.bulk-btn {
+  padding: 8px 20px;
+  border-radius: var(--radius-full);
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-base);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bulk-btn.telegram {
+  background: var(--telegram);
+  color: white;
+}
+
+.bulk-btn.telegram:hover {
+  background: #006699;
+  transform: scale(1.02);
+}
+
+.bulk-btn.delete {
+  background: var(--danger);
+  color: white;
+}
+
+.bulk-btn.delete:hover {
+  background: var(--danger-dark);
+  transform: scale(1.02);
+}
+
+.bulk-btn.close {
+  background: #64748b;
+  color: white;
+}
+
+.bulk-btn.close:hover {
+  background: #475569;
+  transform: scale(1.02);
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: var(--z-modal);
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--transition-base);
+}
+
+.modal-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* History/Edit Modal */
+.history-modal {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-3xl) var(--radius-3xl) 0 0;
+  width: 100%;
+  max-width: 550px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: sheetSlideUp 0.3s ease;
+}
+
+@keyframes sheetSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Modal Header */
+.modal-header {
+  padding: 24px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.close-modal {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  transition: var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.close-modal:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+/* Modal Body */
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--primary-light);
+  border-radius: 10px;
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+  font-family: inherit;
+  transition: var(--transition-base);
+  background: var(--bg-primary);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.form-group input:hover,
+.form-group select:hover {
+  border-color: var(--primary-light);
+}
+
+/* Form Row (Two Columns) */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Form Divider */
+.form-divider {
+  margin: 24px 0 20px;
+  padding-top: 20px;
+  border-top: 2px solid var(--border-light);
+}
+
+/* Reset Password Button */
+.reset-password-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #b45309;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-base);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.reset-password-btn:hover {
+  background: linear-gradient(135deg, #fde68a, #fcd34d);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.modal-actions button {
+  flex: 1;
+  padding: 14px;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: var(--transition-base);
+  font-size: 15px;
+}
+
+.btn-cancel {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.btn-cancel:hover {
+  background: var(--border-medium);
+  transform: translateY(-2px);
+}
+
+/* Save Button with Accent Gradient Background */
+.btn-save {
+  background: linear-gradient(135deg, #6366f1, #4f46e5, #818cf8);
+  color: white;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-save::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+  background: linear-gradient(135deg, #818cf8, #6366f1, #4f46e5);
+}
+
+.btn-save:hover::before {
+  left: 100%;
+}
+
+.btn-save:active {
+  transform: translateY(0);
+}
+
+/* Confirm Dialog */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-toast);
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--transition-base);
+}
+
+.confirm-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.confirm-dialog {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-2xl);
+  padding: 32px;
+  width: 90%;
+  max-width: 340px;
+  text-align: center;
+  animation: scaleIn 0.2s ease;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.confirm-icon i {
+  font-size: 56px;
+  color: var(--danger);
+  margin-bottom: 16px;
+}
+
+.confirm-dialog h3 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+}
+
+.confirm-dialog p {
+  font-size: 14px;
+  color: var(--text-tertiary);
+  margin-bottom: 28px;
+  line-height: 1.5;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.confirm-actions button {
+  flex: 1;
+  padding: 12px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: var(--transition-base);
+}
+
+.confirm-cancel {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.confirm-cancel:hover {
+  background: var(--border-medium);
+  transform: translateY(-2px);
+}
+
+.confirm-delete {
+  background: var(--danger);
+  color: white;
+}
+
+.confirm-delete:hover {
+  background: var(--danger-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Toast Notification */
+.toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30, 41, 59, 0.98);
+  backdrop-filter: blur(20px);
+  color: white;
+  text-align: center;
+  padding: 12px 24px;
+  border-radius: var(--radius-full);
+  z-index: var(--z-toast);
+  font-size: 14px;
+  font-weight: 500;
+  animation: toastIn 0.3s ease;
+  box-shadow: var(--shadow-xl);
+  white-space: nowrap;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toast i {
+  font-size: 16px;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .action-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+  
+  .action-btn span {
+    display: none;
+  }
+  
+  .action-btn i {
+    margin: 0;
+  }
+  
+  .card-details {
+    gap: 8px;
+  }
+  
+  .card-details span {
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+  
+  .bulk-actions-bar {
+    flex-direction: column;
+    border-radius: var(--radius-xl);
+    text-align: center;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+  }
+  
+  .bulk-buttons {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .bulk-btn {
+    flex: 1;
+    justify-content: center;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  
+  .modal-header h2 {
+    font-size: 18px;
+  }
+  
+  .modal-body {
+    padding: 20px;
+  }
+  
+  .toast {
+    white-space: normal;
+    max-width: 90%;
+    font-size: 12px;
+    text-align: center;
+    padding: 10px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .status-badge {
+    padding: 4px 10px;
+    font-size: 10px;
+  }
+  
+  .card-details {
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .card-details span {
+    width: fit-content;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .confirm-dialog {
+    padding: 24px;
+    width: 85%;
+  }
+  
+  .confirm-icon i {
+    font-size: 48px;
+  }
+  
+  .confirm-dialog h3 {
+    font-size: 20px;
+  }
+  
+  .bulk-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Animation for new members */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.payment-card {
+  animation: fadeInUp 0.3s ease;
+}
+
+/* Empty State Styling */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-tertiary);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-medium);
+}
+
+.empty-state i {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+  color: var(--primary-light);
+}
+
+.empty-state h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+}
+
+.empty-state p {
+  font-size: 13px;
+}
+
+/* Bulk Actions Button Variations */
+.bulk-btn.telegram i,
+.bulk-btn.delete i,
+.bulk-btn.close i {
+  font-size: 13px;
+}
+
+/* Selected Card Check Mark Animation */
+@keyframes checkPop {
+  0% {
+    transform: scale(0);
+  }
+  80% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.payment-card.selected .card-checkbox:checked {
+  animation: checkPop 0.2s ease;
+}
+
+/* Hover Effects for Interactive Elements */
+.filter-group input:hover,
+.filter-group select:hover {
+  border-color: var(--primary-light);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+/* Focus States for Accessibility */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Loading States for Buttons */
+.btn-loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-loading i {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Additional Status Badge Variations for Other Pages */
+.status-badge.approved {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.status-badge.pending {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.status-badge.rejected {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+/* Additional Card Styles for Payment Page */
+.payment-card.approved-card {
+  border-left: 4px solid #10b981;
+}
+
+.payment-card.rejected-card {
+  border-left: 4px solid #ef4444;
+}
+
+.payment-card.pending-card {
+  border-left: 4px solid #f59e0b;
+}
+
+/* Enhanced Button Styles */
+.btn-primary {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.btn-secondary {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  padding: 10px 20px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.btn-secondary:hover {
+  background: #e2e8f0;
+  transform: translateY(-2px);
+}
+/* ============================================
+   PAYMENTS PAGE - SKELETON LOADING
+   ============================================ */
+
+/* Stats Skeleton */
+.stat-skeleton {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 150px;
+  animation: pulse 1.5s ease-in-out infinite;
+  border: 1px solid var(--border-medium);
+}
+
+.stat-skeleton-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--border-medium);
+  border-radius: var(--radius-lg);
+}
+
+.stat-skeleton-text {
+  width: 80px;
+  height: 20px;
+  background: var(--border-medium);
+  border-radius: var(--radius-sm);
+}
+
+/* Filter Skeleton */
+.filter-skeleton {
+  height: 80px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  margin-bottom: 20px;
+  animation: pulse 1.5s ease-in-out infinite;
+  border: 1px solid var(--border-medium);
+}
+
+/* Kanban Column Skeleton */
+.kanban-column-skeleton {
+  flex: 1;
+  min-width: 320px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-xl);
+  padding: 0;
+  border: 1px solid var(--border-medium);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.column-header-skeleton {
+  height: 60px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  border-bottom: 2px solid var(--border-medium);
+}
+
+.payment-cards-skeleton {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Card Skeleton */
+.card-skeleton {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  border: 1px solid var(--border-medium);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Kanban Board Skeleton Layout */
+.kanban-board {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  min-height: 500px;
+}
+
+.kanban-board .kanban-column-skeleton:first-child {
+  margin-left: 0;
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Responsive Skeleton */
+@media (max-width: 768px) {
+  .kanban-column-skeleton {
+    min-width: 100%;
+  }
+  
+  .stats-row {
+    flex-wrap: wrap;
+  }
+  
+  .stat-skeleton {
+    min-width: calc(50% - 8px);
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-skeleton {
+    min-width: 100%;
+  }
+  
+  .stat-skeleton-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .stat-skeleton-text {
+    width: 60px;
+    height: 16px;
+  }
+}
+
+/* Additional Stats Icon Styles */
+.stat-icon.pending-icon {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.stat-icon.approved-icon {
+  background: #d1fae5;
+  color: #10b981;
+}
+
+.stat-icon.rejected-icon {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.stat-icon.today-icon {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+/* History Status Text */
+.history-status {
+  font-size: 10px;
+  display: block;
+  text-align: right;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.history-status:contains("Approved") {
+  color: var(--success);
+}
+
+/* Reset Filters Button Enhancement */
+.reset-filters {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-medium);
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: var(--transition-base);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  margin-top: 22px;
+}
+
+.reset-filters:hover {
+  background: var(--bg-secondary);
+  transform: translateY(-1px);
+}
+
+/* Timestamp Variations */
+.timestamp.approved {
+  color: var(--success);
+}
+
+.timestamp.rejected {
+  color: var(--danger);
+}
+
+.timestamp i {
+  margin-right: 4px;
+}
+/* ============================================
+   PAYMENTS PAGE - SKELETON LOADING
+   Preserves original stats styling
+   ============================================ */
+
+/* Stats Row - Keep original layout */
+.stats-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+/* Original Stat Card Style - Preserved */
+.stat-card {
+  flex: 1;
+  min-width: 150px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-xs);
+  border: 1px solid var(--border-medium);
+  transition: var(--transition-base);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.stat-info h3 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.stat-info p {
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Stat Icons Colors - Preserved */
+.stat-icon.pending-icon {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.stat-icon.approved-icon {
+  background: #d1fae5;
+  color: #10b981;
+}
+
+.stat-icon.rejected-icon {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.stat-icon.today-icon {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+/* Skeleton Loading Styles - Only for loading state */
+.stat-skeleton {
+  flex: 1;
+  min-width: 150px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: pulse 1.5s ease-in-out infinite;
+  border: 1px solid var(--border-medium);
+}
+
+.stat-skeleton-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+  border-radius: var(--radius-lg);
+}
+
+.stat-skeleton-text {
+  flex: 1;
+  height: 40px;
+  background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+  border-radius: var(--radius-sm);
+}
+
+/* Filter Skeleton */
+.filter-skeleton {
+  height: 80px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  margin-bottom: 20px;
+  animation: pulse 1.5s ease-in-out infinite;
+  border: 1px solid var(--border-medium);
+}
+
+/* Kanban Column Skeleton */
+.kanban-column-skeleton {
+  flex: 1;
+  min-width: 320px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1px solid var(--border-medium);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.column-header-skeleton {
+  height: 56px;
+  background: var(--bg-secondary);
+  border-bottom: 2px solid var(--border-medium);
+}
+
+.payment-cards-skeleton {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Card Skeleton */
+.card-skeleton {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  border: 1px solid var(--border-medium);
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Kanban Board Layout - Keep original */
+.kanban-board {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  min-height: 500px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .stats-row {
+    gap: 12px;
+  }
+  
+  .stat-card,
+  .stat-skeleton {
+    min-width: calc(50% - 6px);
+  }
+  
+  .kanban-column-skeleton {
+    min-width: 100%;
+  }
+  
+  .kanban-board {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-card,
+  .stat-skeleton {
+    min-width: 100%;
+  }
+  
+  .stat-icon,
+  .stat-skeleton-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  
+  .stat-info h3 {
+    font-size: 18px;
+  }
+}
+
+/* Bulk Actions Bar - Keep original */
+.bulk-actions-bar {
+  position: fixed;
+  bottom: 20px;
+  left: 16px;
+  right: 16px;
+  background: var(--text-primary);
+  border-radius: var(--radius-full);
+  padding: 12px 24px;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  z-index: var(--z-high);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bulk-actions-bar.show {
+  display: flex;
+  animation: slideUp 0.3s ease;
+}
+
+.bulk-selected {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bulk-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.bulk-btn {
+  padding: 8px 20px;
+  border-radius: var(--radius-full);
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-base);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bulk-btn.approve {
+  background: var(--success);
+  color: white;
+}
+
+.bulk-btn.approve:hover {
+  background: var(--success-dark);
+  transform: scale(1.02);
+}
+
+.bulk-btn.reject {
+  background: var(--danger);
+  color: white;
+}
+
+.bulk-btn.reject:hover {
+  background: var(--danger-dark);
+  transform: scale(1.02);
+}
+
+.bulk-btn.close {
+  background: #64748b;
+  color: white;
+}
+
+.bulk-btn.close:hover {
+  background: #475569;
+}
+
+/* History Modal Styles - Keep original */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: var(--z-modal);
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--transition-base);
+}
+
+.modal-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.history-modal {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-3xl) var(--radius-3xl) 0 0;
+  width: 100%;
+  max-width: 550px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: sheetSlideUp 0.3s ease;
+}
+
+@keyframes sheetSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  padding: 20px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.close-modal {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.close-modal:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+/* Member Profile Card in Modal */
+.member-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-medium);
+}
+
+.member-avatar-large {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+}
+
+.member-stats {
+  flex: 1;
+  display: flex;
+  gap: 12px;
+}
+
+.stat-badge {
+  background: var(--bg-secondary);
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  text-align: center;
+  flex: 1;
+}
+
+.stat-badge .label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
+}
+
+.stat-badge .value {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.stat-badge .value.success {
+  color: var(--success);
+}
+
+/* History Filters */
+.history-filters {
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-medium);
+}
+
+.year-filter, .month-filter {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.year-chip, .month-chip {
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  background: var(--bg-tertiary);
+  font-size: 11px;
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.year-chip.active, .month-chip.active {
+  background: var(--primary);
+  color: white;
+}
+
+.year-chip:hover, .month-chip:hover {
+  background: var(--border-medium);
+}
+
+/* History List */
+.history-list {
+  padding: 12px 16px;
+  overflow-y: auto;
+  flex: 1;
+  max-height: 400px;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-medium);
+}
+
+.history-month .month-name {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.history-month .year-name {
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.history-amount {
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.history-amount.approved { color: var(--success); }
+.history-amount.pending { color: var(--warning); }
+.history-amount.rejected { color: var(--danger); }
+
+.history-status {
+  font-size: 10px;
+  display: block;
+  text-align: right;
+  margin-top: 4px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+
+/* Total Section */
+.total-section {
+  padding: 12px 16px;
+  background: var(--bg-tertiary);
+  border-top: 1px solid var(--border-medium);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-tertiary);
+}
+
+.empty-state i {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  font-size: 13px;
+}
+
+/* Action Buttons in Payments */
+.action-btn {
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-base);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.action-btn.approve {
+  background: #dcfce7;
+  color: var(--success);
+}
+
+.action-btn.approve:hover {
+  background: var(--success);
+  color: white;
+}
+
+.action-btn.reject {
+  background: #fee2e2;
+  color: var(--danger);
+}
+
+.action-btn.reject:hover {
+  background: var(--danger);
+  color: white;
+}
+
+.action-btn.history {
+  background: #e0e7ff;
+  color: var(--primary);
+}
+
+.action-btn.history:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* Month Tags */
+.month-tag {
+  background: var(--bg-tertiary);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* Responsive Modal */
+@media (min-width: 768px) {
+  .modal-overlay {
+    align-items: center;
+  }
+  
+  .history-modal {
+    border-radius: var(--radius-3xl);
+    max-width: 550px;
+    max-height: 85vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .member-profile-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .member-stats {
+    width: 100%;
+  }
+  
+  .history-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .history-amount {
+    text-align: left;
+  }
+  
+  .history-status {
+    text-align: left;
+  }
+  
+  .action-btn span {
+    display: none;
+  }
+  
+  .action-btn i {
+    margin: 0;
+  }
+  
+  .bulk-actions-bar {
+    flex-direction: column;
+    border-radius: var(--radius-xl);
+    text-align: center;
+  }
+  
+  .bulk-buttons {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .bulk-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}

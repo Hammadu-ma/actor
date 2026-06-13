@@ -52,6 +52,7 @@ const Payments = () => {
 
   // Define loadData BEFORE useEffect
   const loadData = useCallback(async () => {
+    setLoading(true);
     try {
       const membersSnapshot = await getDocs(collection(db, "members"));
       const membersList = membersSnapshot.docs.map(doc => ({
@@ -72,10 +73,11 @@ const Payments = () => {
       calculateStats(paymentsList);
     } catch (error) {
       console.error('Error loading data:', error);
+      showToast("Error loading payments", true);
     } finally {
       setLoading(false);
     }
-  }, [calculateStats]);
+  }, [calculateStats, showToast]);
 
   // useEffect AFTER loadData is defined
   useEffect(() => {
@@ -231,12 +233,50 @@ const Payments = () => {
 
   const closeHistoryModal = useCallback(() => {
     setShowHistoryModal(false);
+    setCurrentMemberHistory(null);
   }, []);
 
   const filtered = getFilteredPayments();
 
+  // Loading Skeleton
   if (loading) {
-    return <div className="loading">Loading payments...</div>;
+    return (
+      <div className="app-container">
+        <div className="payments-header">
+          <div className="header-title">
+            <h1>Payment Management</h1>
+            <p>Review, approve, and explore member contribution history</p>
+          </div>
+        </div>
+        
+        {/* Stats Skeleton */}
+        <div className="stats-row">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="stat-skeleton">
+              <div className="stat-skeleton-icon"></div>
+              <div className="stat-skeleton-text"></div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Filter Skeleton */}
+        <div className="filter-skeleton"></div>
+        
+        {/* Kanban Board Skeleton */}
+        <div className="kanban-board">
+          {[1, 2, 3].map(column => (
+            <div key={column} className="kanban-column-skeleton">
+              <div className="column-header-skeleton"></div>
+              <div className="payment-cards-skeleton">
+                <div className="card-skeleton"></div>
+                <div className="card-skeleton"></div>
+                <div className="card-skeleton"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -251,32 +291,40 @@ const Payments = () => {
       {/* Stats Row */}
       <div className="stats-row">
         <div className="stat-card">
-          <div className="stat-icon" style={{ background: '#fef3c7' }}>
-            <i className="fa fa-clock" style={{ color: '#f59e0b' }}></i>
+          <div className="stat-icon pending-icon">
+            <i className="fa fa-clock"></i>
           </div>
-          <h3>{stats.pending}</h3>
-          <p>Pending</p>
+          <div className="stat-info">
+            <h3>{stats.pending}</h3>
+            <p>Pending</p>
+          </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon" style={{ background: '#d1fae5' }}>
-            <i className="fa fa-check-circle" style={{ color: '#10b981' }}></i>
+          <div className="stat-icon approved-icon">
+            <i className="fa fa-check-circle"></i>
           </div>
-          <h3>{stats.approved}</h3>
-          <p>Approved</p>
+          <div className="stat-info">
+            <h3>{stats.approved}</h3>
+            <p>Approved</p>
+          </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon" style={{ background: '#fee2e2' }}>
-            <i className="fa fa-times-circle" style={{ color: '#ef4444' }}></i>
+          <div className="stat-icon rejected-icon">
+            <i className="fa fa-times-circle"></i>
           </div>
-          <h3>{stats.rejected}</h3>
-          <p>Rejected</p>
+          <div className="stat-info">
+            <h3>{stats.rejected}</h3>
+            <p>Rejected</p>
+          </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon" style={{ background: '#dbeafe' }}>
-            <i className="fa fa-chart-line" style={{ color: '#3b82f6' }}></i>
+          <div className="stat-icon today-icon">
+            <i className="fa fa-chart-line"></i>
           </div>
-          <h3>{stats.todayAmount} ETB</h3>
-          <p>Today</p>
+          <div className="stat-info">
+            <h3>{stats.todayAmount} ETB</h3>
+            <p>Today</p>
+          </div>
         </div>
       </div>
 
@@ -304,6 +352,12 @@ const Payments = () => {
               <option value="month">This Month</option>
             </select>
           </div>
+          <button className="reset-filters" onClick={() => {
+            setSearchTerm('');
+            setDateRange('all');
+          }}>
+            <i className="fa fa-undo"></i> Reset
+          </button>
         </div>
       </div>
 
@@ -313,7 +367,7 @@ const Payments = () => {
         <div className="kanban-column">
           <div className="column-header pending">
             <div className="column-title">
-              <i className="fa fa-clock" style={{ color: '#f59e0b' }}></i>
+              <i className="fa fa-clock"></i>
               <span>Pending Review</span>
               <span className="column-count">{filtered.pending.length}</span>
             </div>
@@ -321,7 +375,7 @@ const Payments = () => {
           <div className="payment-cards">
             {filtered.pending.length === 0 ? (
               <div className="empty-state">
-                <i className="fa fa-inbox" style={{ fontSize: '48px' }}></i>
+                <i className="fa fa-inbox"></i>
                 <p>No pending payments</p>
               </div>
             ) : (
@@ -338,7 +392,7 @@ const Payments = () => {
                     <div className="member-avatar">{getInitials(payment.memberName)}</div>
                     <div className="member-info">
                       <h4>{payment.memberName || "Unknown"}</h4>
-                      <p>{payment.amount || 0} ETB</p>
+                      <p>{payment.memberDepartment || "No department"}</p>
                     </div>
                     <div className="amount">{payment.amount || 0} ETB</div>
                   </div>
@@ -383,7 +437,7 @@ const Payments = () => {
         <div className="kanban-column">
           <div className="column-header approved">
             <div className="column-title">
-              <i className="fa fa-check-circle" style={{ color: '#10b981' }}></i>
+              <i className="fa fa-check-circle"></i>
               <span>Approved</span>
               <span className="column-count">{filtered.approved.length}</span>
             </div>
@@ -391,17 +445,17 @@ const Payments = () => {
           <div className="payment-cards">
             {filtered.approved.length === 0 ? (
               <div className="empty-state">
-                <i className="fa fa-inbox" style={{ fontSize: '48px' }}></i>
+                <i className="fa fa-inbox"></i>
                 <p>No approved payments</p>
               </div>
             ) : (
               filtered.approved.map(payment => (
-                <div key={payment.id} className="payment-card">
+                <div key={payment.id} className="payment-card approved-card">
                   <div className="card-header">
                     <div className="member-avatar">{getInitials(payment.memberName)}</div>
                     <div className="member-info">
                       <h4>{payment.memberName || "Unknown"}</h4>
-                      <p>{payment.amount || 0} ETB</p>
+                      <p>{payment.memberDepartment || "No department"}</p>
                     </div>
                     <div className="amount">{payment.amount || 0} ETB</div>
                   </div>
@@ -411,9 +465,8 @@ const Payments = () => {
                     ))}
                   </div>
                   <div className="card-footer">
-                    <div className="timestamp">
-                      <i className="fa fa-check-circle" style={{ color: '#10b981' }}></i> 
-                      Approved
+                    <div className="timestamp approved">
+                      <i className="fa fa-check-circle"></i> Approved
                     </div>
                     <div className="action-buttons">
                       <button 
@@ -434,7 +487,7 @@ const Payments = () => {
         <div className="kanban-column">
           <div className="column-header rejected">
             <div className="column-title">
-              <i className="fa fa-times-circle" style={{ color: '#ef4444' }}></i>
+              <i className="fa fa-times-circle"></i>
               <span>Rejected</span>
               <span className="column-count">{filtered.rejected.length}</span>
             </div>
@@ -442,17 +495,17 @@ const Payments = () => {
           <div className="payment-cards">
             {filtered.rejected.length === 0 ? (
               <div className="empty-state">
-                <i className="fa fa-inbox" style={{ fontSize: '48px' }}></i>
+                <i className="fa fa-inbox"></i>
                 <p>No rejected payments</p>
               </div>
             ) : (
               filtered.rejected.map(payment => (
-                <div key={payment.id} className="payment-card">
+                <div key={payment.id} className="payment-card rejected-card">
                   <div className="card-header">
                     <div className="member-avatar">{getInitials(payment.memberName)}</div>
                     <div className="member-info">
                       <h4>{payment.memberName || "Unknown"}</h4>
-                      <p>{payment.amount || 0} ETB</p>
+                      <p>{payment.memberDepartment || "No department"}</p>
                     </div>
                     <div className="amount">{payment.amount || 0} ETB</div>
                   </div>
@@ -462,8 +515,8 @@ const Payments = () => {
                     ))}
                   </div>
                   <div className="card-footer">
-                    <div className="timestamp">
-                      <i className="fa fa-times-circle" style={{ color: '#ef4444' }}></i> Rejected
+                    <div className="timestamp rejected">
+                      <i className="fa fa-times-circle"></i> Rejected
                     </div>
                     <div className="action-buttons">
                       <button 
@@ -483,21 +536,25 @@ const Payments = () => {
 
       {/* Bulk Actions Bar */}
       <div className={`bulk-actions-bar ${selectedPaymentIds.size > 0 ? 'show' : ''}`}>
-        <span>{selectedPaymentIds.size}</span> selected
-        <button className="bulk-btn approve" onClick={bulkApprove}>
-          <i className="fa fa-check"></i> Approve All
-        </button>
-        <button className="bulk-btn reject" onClick={bulkReject}>
-          <i className="fa fa-times"></i> Reject All
-        </button>
-        <button className="bulk-btn close" onClick={() => setSelectedPaymentIds(new Set())}>
-          <i className="fa fa-times"></i> Close
-        </button>
+        <span className="bulk-selected">
+          <i className="fa fa-check-circle"></i> {selectedPaymentIds.size} selected
+        </span>
+        <div className="bulk-buttons">
+          <button className="bulk-btn approve" onClick={bulkApprove}>
+            <i className="fa fa-check"></i> Approve All
+          </button>
+          <button className="bulk-btn reject" onClick={bulkReject}>
+            <i className="fa fa-times"></i> Reject All
+          </button>
+          <button className="bulk-btn close" onClick={() => setSelectedPaymentIds(new Set())}>
+            <i className="fa fa-times"></i> Close
+          </button>
+        </div>
       </div>
 
       {/* History Modal */}
-      <div className={`modal-overlay ${showHistoryModal ? 'show' : ''}`}>
-        <div className="history-modal">
+      <div className={`modal-overlay ${showHistoryModal ? 'show' : ''}`} onClick={closeHistoryModal}>
+        <div className="history-modal" onClick={e => e.stopPropagation()}>
           <div className="modal-header">
             <h2>Payment History</h2>
             <button className="close-modal" onClick={closeHistoryModal}>
@@ -597,7 +654,7 @@ const Payments = () => {
                           <div className={`history-amount ${payment.status}`}>
                             {payment.amount || 0} ETB
                           </div>
-                          <span style={{ fontSize: '10px' }}>{statusText}</span>
+                          <span className="history-status">{statusText}</span>
                         </div>
                       </div>
                     );
