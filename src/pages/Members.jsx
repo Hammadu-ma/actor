@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { db } from '../config/firebase';
+import React, { useState, useEffect } from 'react';
+import { db, auth } from '../config/firebase';
 import { 
-  collection, getDocs, doc, updateDoc, deleteDoc
+  collection, getDocs, doc, updateDoc, deleteDoc, getDoc
 } from 'firebase/firestore';
-import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
+import { sendPasswordResetEmail } from 'firebase/auth';
 
 const Members = () => {
   const [allMembers, setAllMembers] = useState([]);
@@ -43,26 +43,20 @@ const Members = () => {
     { value: 'viewer', label: 'Viewer', icon: 'fa-eye', color: '#10b981', bg: '#d1fae5' }
   ];
 
-  const auth = getAuth();
-
-  const showToast = useCallback((message, isError = false) => {
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerHTML = `<i class="fa ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 2800);
+  useEffect(() => {
+    loadData();
   }, []);
 
-  const getCurrentMonthInfo = useCallback(() => {
+  const getCurrentMonthInfo = () => {
     const now = new Date();
     return {
       name: now.toLocaleString('default', { month: 'long' }),
       shortName: now.toLocaleString('default', { month: 'short' }),
       display: `${now.toLocaleString('default', { month: 'long' })} ${now.getFullYear()}`
     };
-  }, []);
+  };
 
-  const calculatePaidStatus = useCallback(() => {
+  const calculatePaidStatus = () => {
     const currentMonth = getCurrentMonthInfo();
     const paidSet = new Set();
     allPayments.forEach(payment => {
@@ -77,9 +71,9 @@ const Members = () => {
       }
     });
     return paidSet;
-  }, [allPayments, getCurrentMonthInfo]);
+  };
 
-  const loadData = useCallback(async () => {
+  const loadData = async () => {
     setLoading(true);
     try {
       const membersSnapshot = await getDocs(collection(db, "members"));
@@ -104,14 +98,9 @@ const Members = () => {
     } finally {
       setLoading(false);
     }
-  }, [calculatePaidStatus, showToast]);
+  };
 
-  // FIXED: Empty dependency array - runs only once on mount
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const deleteMemberById = useCallback(async (id) => {
+  const deleteMemberById = async (id) => {
     try {
       await deleteDoc(doc(db, "members", id));
       return true;
@@ -119,13 +108,13 @@ const Members = () => {
       console.error('Error deleting member:', error);
       return false;
     }
-  }, []);
+  };
 
-  const getInitials = useCallback((name) => {
+  const getInitials = (name) => {
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'M';
-  }, []);
+  };
 
-  const getFilteredMembers = useCallback(() => {
+  const getFilteredMembers = () => {
     let filtered = [...allMembers];
     
     if (paymentStatusFilter === 'paid') {
@@ -151,9 +140,9 @@ const Members = () => {
     }
     
     return filtered;
-  }, [allMembers, currentMonthPaidSet, paymentStatusFilter, searchTerm, deptFilter, yearFilter]);
+  };
 
-  const sendTelegramReminder = useCallback(async (memberId, memberName, telegram, e) => {
+  const sendTelegramReminder = async (memberId, memberName, telegram, e) => {
     if (e) e.stopPropagation();
     
     if (!telegram || telegram.trim() === "") {
@@ -183,9 +172,9 @@ const Members = () => {
       showToast(`❌ Failed to send reminder to ${memberName}`, true);
       return false;
     }
-  }, [getCurrentMonthInfo, showToast]);
+  };
 
-  const bulkSendReminders = useCallback(async () => {
+  const bulkSendReminders = async () => {
     const selectedMembers = allMembers.filter(m => selectedMemberIds.has(m.id));
     const membersWithTelegram = selectedMembers.filter(m => m.telegram && m.telegram.trim());
     
@@ -205,34 +194,30 @@ const Members = () => {
     
     showToast(`✅ Sent ${successCount} of ${membersWithTelegram.length} reminders`);
     setSelectedMemberIds(new Set());
-  }, [allMembers, selectedMemberIds, sendTelegramReminder, showToast]);
+  };
 
-  const toggleSelectMember = useCallback((memberId) => {
-    setSelectedMemberIds(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(memberId)) {
-        newSet.delete(memberId);
-      } else {
-        newSet.add(memberId);
-      }
-      return newSet;
-    });
-  }, []);
+  const toggleSelectMember = (memberId) => {
+    const newSet = new Set(selectedMemberIds);
+    if (newSet.has(memberId)) {
+      newSet.delete(memberId);
+    } else {
+      newSet.add(memberId);
+    }
+    setSelectedMemberIds(newSet);
+  };
 
-  const selectAllVisible = useCallback(() => {
+  const selectAllVisible = () => {
     const filtered = getFilteredMembers();
-    setSelectedMemberIds(prev => {
-      const newSet = new Set(prev);
-      filtered.forEach(m => newSet.add(m.id));
-      return newSet;
-    });
-  }, [getFilteredMembers]);
+    const newSet = new Set(selectedMemberIds);
+    filtered.forEach(m => newSet.add(m.id));
+    setSelectedMemberIds(newSet);
+  };
 
-  const deselectAll = useCallback(() => {
+  const deselectAll = () => {
     setSelectedMemberIds(new Set());
-  }, []);
+  };
 
-  const openEditModal = useCallback((member, e) => {
+  const openEditModal = (member, e) => {
     if (e) e.stopPropagation();
     setCurrentEditingMember(member);
     setEditForm({
@@ -245,14 +230,14 @@ const Members = () => {
       role: member.role || 'member'
     });
     setShowEditModal(true);
-  }, []);
+  };
 
-  const closeEditModal = useCallback(() => {
+  const closeEditModal = () => {
     setShowEditModal(false);
     setCurrentEditingMember(null);
-  }, []);
+  };
 
-  const handleEditSubmit = useCallback(async (e) => {
+  const handleEditSubmit = async (e) => {
     e.preventDefault();
     if (!currentEditingMember) return;
     
@@ -273,9 +258,9 @@ const Members = () => {
       console.error('Error updating member:', error);
       showToast("❌ Error updating member", true);
     }
-  }, [currentEditingMember, editForm, showToast, closeEditModal, loadData]);
+  };
 
-  const handleSendResetEmail = useCallback(async (e) => {
+  const handleSendResetEmail = async (e) => {
     if (e) e.stopPropagation();
     if (!currentEditingMember) return;
     const email = editForm.email;
@@ -289,34 +274,32 @@ const Members = () => {
     } else {
       showToast("❌ No email address", true);
     }
-  }, [currentEditingMember, editForm.email, showToast, auth]);
+  };
 
-  const showConfirm = useCallback((message, onConfirm) => {
+  const showConfirm = (message, onConfirm) => {
     setConfirmData({ message, onConfirm: () => {
       onConfirm();
       setShowConfirmDialog(false);
     }});
     setShowConfirmDialog(true);
-  }, []);
+  };
 
-  const handleDeleteMember = useCallback(async (memberId, memberName, e) => {
+  const handleDeleteMember = async (memberId, memberName, e) => {
     if (e) e.stopPropagation();
     showConfirm(`Delete "${memberName}"? This action cannot be undone.`, async () => {
       if (await deleteMemberById(memberId)) {
         showToast(`🗑️ Deleted ${memberName}`);
-        setSelectedMemberIds(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(memberId);
-          return newSet;
-        });
+        const newSet = new Set(selectedMemberIds);
+        newSet.delete(memberId);
+        setSelectedMemberIds(newSet);
         await loadData();
       } else {
         showToast("❌ Failed to delete member", true);
       }
     });
-  }, [deleteMemberById, showConfirm, showToast, loadData]);
+  };
 
-  const handleBulkDelete = useCallback(async () => {
+  const handleBulkDelete = async () => {
     if (selectedMemberIds.size === 0) {
       showToast("No members selected", true);
       return;
@@ -330,9 +313,9 @@ const Members = () => {
       setSelectedMemberIds(new Set());
       await loadData();
     });
-  }, [selectedMemberIds, deleteMemberById, showConfirm, showToast, loadData]);
+  };
 
-  const exportToCSV = useCallback(() => {
+  const exportToCSV = () => {
     const filtered = getFilteredMembers();
     const rows = [["Full Name", "Email", "Phone", "Telegram", "Department", "Batch Year", "Role", "Payment Status"]];
     
@@ -357,15 +340,23 @@ const Members = () => {
     a.click();
     URL.revokeObjectURL(a.href);
     showToast("✅ CSV exported successfully");
-  }, [getFilteredMembers, currentMonthPaidSet, showToast]);
+  };
 
-  const getDepartments = useCallback(() => {
+  const showToast = (message, isError = false) => {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<i class="fa ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2800);
+  };
+
+  const getDepartments = () => {
     return [...new Set(allMembers.map(m => m.department).filter(Boolean))];
-  }, [allMembers]);
+  };
 
-  const getBatchYears = useCallback(() => {
+  const getBatchYears = () => {
     return [...new Set(allMembers.map(m => m.batchYear).filter(Boolean))].sort().reverse();
-  }, [allMembers]);
+  };
 
   const filteredMembers = getFilteredMembers();
   const departments = getDepartments();
@@ -669,6 +660,7 @@ const Members = () => {
         </div>
       </div>
 
+      {/* Bulk Actions Bar - Beautiful Floating Bar */}
       <div className={`bulk-actions-bar ${selectedMemberIds.size > 0 ? 'show' : ''}`}>
         <span className="bulk-selected">
           <i className="fa fa-check-circle"></i> {selectedMemberIds.size} member(s) selected
@@ -686,6 +678,7 @@ const Members = () => {
         </div>
       </div>
 
+      {/* Edit Modal */}
       <div className={`modal-overlay ${showEditModal ? 'show' : ''}`} onClick={closeEditModal}>
         <div className="edit-modal" onClick={e => e.stopPropagation()}>
           <div className="modal-header">
@@ -794,6 +787,7 @@ const Members = () => {
         </div>
       </div>
 
+      {/* Confirmation Dialog */}
       <div className={`confirm-overlay ${showConfirmDialog ? 'show' : ''}`} onClick={() => setShowConfirmDialog(false)}>
         <div className="confirm-dialog" onClick={e => e.stopPropagation()}>
           <div className="confirm-icon">
@@ -811,10 +805,8 @@ const Members = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
-};
- <style>{`
+
+      <style>{`
        /* ============================================
    MEMBERS PAGE - COMPLETE UNIFIED CSS
    Tap-to-Select • Bulk Actions • Glassmorphism
@@ -2355,4 +2347,8 @@ body {
   outline-offset: 2px;
 }
       `}</style>
+    </div>
+  );
+};
+
 export default Members;
