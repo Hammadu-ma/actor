@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { db } from '../config/firebase'; // Removed 'auth' as it's not used directly
+import { db } from '../config/firebase';
 import { 
   collection, getDocs, doc, updateDoc, deleteDoc
 } from 'firebase/firestore';
@@ -43,10 +43,8 @@ const Members = () => {
     { value: 'viewer', label: 'Viewer', icon: 'fa-eye', color: '#10b981', bg: '#d1fae5' }
   ];
 
-  // Get auth instance
   const auth = getAuth();
 
-  // Wrap showToast with useCallback
   const showToast = useCallback((message, isError = false) => {
     const toast = document.createElement('div');
     toast.className = 'toast';
@@ -108,10 +106,10 @@ const Members = () => {
     }
   }, [calculatePaidStatus, showToast]);
 
-  // Fixed useEffect - added loadData dependency
+  // FIXED: Empty dependency array - runs only once on mount
   useEffect(() => {
     loadData();
-  }, [loadData]);
+  }, []);
 
   const deleteMemberById = useCallback(async (id) => {
     try {
@@ -377,9 +375,6 @@ const Members = () => {
   const unpaidCount = totalMembers - paidCount;
   const currentMonth = getCurrentMonthInfo();
 
-  // The rest of your JSX remains exactly the same
-  // (keeping your existing JSX to save space in this response)
-  
   if (loading) {
     return (
       <div className="members-page">
@@ -481,10 +476,8 @@ const Members = () => {
     );
   }
 
-  // Return your JSX here (keeping your existing JSX structure)
   return (
     <div className="members-page">
-      {/* Your existing JSX content - keeping it as is */}
       <div className="app-container">
         <div className="members-header">
           <div className="header-title">
@@ -676,7 +669,6 @@ const Members = () => {
         </div>
       </div>
 
-      {/* Bulk Actions Bar */}
       <div className={`bulk-actions-bar ${selectedMemberIds.size > 0 ? 'show' : ''}`}>
         <span className="bulk-selected">
           <i className="fa fa-check-circle"></i> {selectedMemberIds.size} member(s) selected
@@ -694,7 +686,6 @@ const Members = () => {
         </div>
       </div>
 
-      {/* Edit Modal */}
       <div className={`modal-overlay ${showEditModal ? 'show' : ''}`} onClick={closeEditModal}>
         <div className="edit-modal" onClick={e => e.stopPropagation()}>
           <div className="modal-header">
@@ -803,7 +794,6 @@ const Members = () => {
         </div>
       </div>
 
-      {/* Confirmation Dialog */}
       <div className={`confirm-overlay ${showConfirmDialog ? 'show' : ''}`} onClick={() => setShowConfirmDialog(false)}>
         <div className="confirm-dialog" onClick={e => e.stopPropagation()}>
           <div className="confirm-icon">
@@ -821,6 +811,9 @@ const Members = () => {
           </div>
         </div>
       </div>
+    </div>
+  );
+};
  <style>{`
        /* ============================================
    MEMBERS PAGE - COMPLETE UNIFIED CSS
@@ -2362,8 +2355,4 @@ body {
   outline-offset: 2px;
 }
       `}</style>
-    </div>
-  );
-};
-
 export default Members;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { db } from '../config/firebase';
 import { 
   collection, getDocs, doc, updateDoc, 
@@ -27,11 +27,31 @@ const Payments = () => {
     todayAmount: 0
   });
 
-  useEffect(() => {
-  loadData();
-}, [loadData]); 
+  // Define showToast first (used by other functions)
+  const showToast = useCallback((message, isError = false) => {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<i class="fa ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }, []);
 
-  const loadData = async () => {
+  // Define calculateStats
+  const calculateStats = useCallback((payments) => {
+    const pending = payments.filter(p => p.status === "pending").length;
+    const approved = payments.filter(p => p.status === "approved").length;
+    const rejected = payments.filter(p => p.status === "rejected").length;
+    
+    const today = new Date().toDateString();
+    const todayAmount = payments
+      .filter(p => p.status === "approved" && p.submittedAtDate?.toDateString() === today)
+      .reduce((sum, p) => sum + (p.amount || 0), 0);
+    
+    setStats({ pending, approved, rejected, todayAmount });
+  }, []);
+
+  // Define loadData BEFORE useEffect
+  const loadData = useCallback(async () => {
     try {
       const membersSnapshot = await getDocs(collection(db, "members"));
       const membersList = membersSnapshot.docs.map(doc => ({
@@ -55,22 +75,15 @@ const Payments = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [calculateStats]);
 
-  const calculateStats = (payments) => {
-    const pending = payments.filter(p => p.status === "pending").length;
-    const approved = payments.filter(p => p.status === "approved").length;
-    const rejected = payments.filter(p => p.status === "rejected").length;
-    
-    const today = new Date().toDateString();
-    const todayAmount = payments
-      .filter(p => p.status === "approved" && p.submittedAtDate?.toDateString() === today)
-      .reduce((sum, p) => sum + (p.amount || 0), 0);
-    
-    setStats({ pending, approved, rejected, todayAmount });
-  };
+  // useEffect AFTER loadData is defined
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
-  const getFilteredPayments = () => {
+  // Define remaining functions with useCallback
+  const getFilteredPayments = useCallback(() => {
     let filtered = [...allPayments];
     
     if (searchTerm) {
@@ -101,9 +114,9 @@ const Payments = () => {
       approved: filtered.filter(p => p.status === "approved"),
       rejected: filtered.filter(p => p.status === "rejected")
     };
-  };
+  }, [allPayments, searchTerm, dateRange]);
 
-  const handleApprove = async (paymentId) => {
+  const handleApprove = useCallback(async (paymentId) => {
     try {
       await updateDoc(doc(db, "payments", paymentId), { 
         status: "approved", 
@@ -115,9 +128,9 @@ const Payments = () => {
     } catch (error) {
       showToast("❌ Error approving payment", true);
     }
-  };
+  }, [showToast, loadData]);
 
-  const handleReject = async (paymentId) => {
+  const handleReject = useCallback(async (paymentId) => {
     try {
       await updateDoc(doc(db, "payments", paymentId), { 
         status: "rejected" 
@@ -128,9 +141,9 @@ const Payments = () => {
     } catch (error) {
       showToast("❌ Error rejecting payment", true);
     }
-  };
+  }, [showToast, loadData]);
 
-  const bulkApprove = async () => {
+  const bulkApprove = useCallback(async () => {
     for (const id of selectedPaymentIds) {
       await updateDoc(doc(db, "payments", id), { 
         status: "approved", 
@@ -140,9 +153,9 @@ const Payments = () => {
     showToast(`✅ Approved ${selectedPaymentIds.size} payments`);
     setSelectedPaymentIds(new Set());
     await loadData();
-  };
+  }, [selectedPaymentIds, showToast, loadData]);
 
-  const bulkReject = async () => {
+  const bulkReject = useCallback(async () => {
     for (const id of selectedPaymentIds) {
       await updateDoc(doc(db, "payments", id), { 
         status: "rejected" 
@@ -151,19 +164,21 @@ const Payments = () => {
     showToast(`❌ Rejected ${selectedPaymentIds.size} payments`);
     setSelectedPaymentIds(new Set());
     await loadData();
-  };
+  }, [selectedPaymentIds, showToast, loadData]);
 
-  const toggleSelectPayment = (paymentId) => {
-    const newSet = new Set(selectedPaymentIds);
-    if (newSet.has(paymentId)) {
-      newSet.delete(paymentId);
-    } else {
-      newSet.add(paymentId);
-    }
-    setSelectedPaymentIds(newSet);
-  };
+  const toggleSelectPayment = useCallback((paymentId) => {
+    setSelectedPaymentIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(paymentId)) {
+        newSet.delete(paymentId);
+      } else {
+        newSet.add(paymentId);
+      }
+      return newSet;
+    });
+  }, []);
 
-  const showMemberHistory = (memberId, memberName) => {
+  const showMemberHistory = useCallback((memberId, memberName) => {
     const memberPayments = allPayments.filter(p => 
       p.memberId === memberId || p.uid === memberId
     );
@@ -178,9 +193,9 @@ const Payments = () => {
     setYearFilter('all');
     setMonthFilter('all');
     setShowHistoryModal(true);
-  };
+  }, [allPayments, allMembers]);
 
-  const getFilteredHistory = () => {
+  const getFilteredHistory = useCallback(() => {
     if (!currentMemberHistory) return [];
     
     let filtered = [...currentMemberHistory.payments];
@@ -200,31 +215,23 @@ const Payments = () => {
     return filtered.sort((a, b) => 
       (b.submittedAt?.toDate?.() || 0) - (a.submittedAt?.toDate?.() || 0)
     );
-  };
+  }, [currentMemberHistory, yearFilter, monthFilter]);
 
-  const getInitials = (name) => {
+  const getInitials = useCallback((name) => {
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'M';
-  };
+  }, []);
 
-  const formatRelativeTime = (date) => {
+  const formatRelativeTime = useCallback((date) => {
     const seconds = Math.floor((new Date() - date) / 1000);
     if (seconds < 60) return 'just now';
     if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
     if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
     return `${Math.floor(seconds / 86400)} days ago`;
-  };
+  }, []);
 
-  const showToast = (message, isError = false) => {
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerHTML = `<i class="fa ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-  };
-
-  const closeHistoryModal = () => {
+  const closeHistoryModal = useCallback(() => {
     setShowHistoryModal(false);
-  };
+  }, []);
 
   const filtered = getFilteredPayments();
 
@@ -493,7 +500,6 @@ const Payments = () => {
         <div className="history-modal">
           <div className="modal-header">
             <h2>Payment History</h2>
-            <p></p>
             <button className="close-modal" onClick={closeHistoryModal}>
               <i className="fa fa-times"></i>
             </button>

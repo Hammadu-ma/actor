@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { db } from '../config/firebase'; // Removed 'auth' as it's not used
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { db } from '../config/firebase';
 import { 
-  collection, getDocs // Removed doc, getDoc as they're not used
+  collection, getDocs
 } from 'firebase/firestore';
 
 const Reminders = () => {
@@ -18,11 +18,12 @@ const Reminders = () => {
   });
   const [showTestModal, setShowTestModal] = useState(false);
   const [testTelegram, setTestTelegram] = useState("");
-  const [autoScheduleInterval, setAutoScheduleInterval] = useState(null); // Moved to state
+  const [autoScheduleInterval, setAutoScheduleInterval] = useState(null);
 
   const BOT_TOKEN = "8784743959:AAEMA8yJqQYVcV3nOkdhyLQKgc5r6OX3FEI";
 
-  const templates = {
+  // Wrap templates with useMemo to prevent recreation on every render
+  const templates = useMemo(() => ({
     1: {
       name: "Friendly Reminder",
       badge: "1st Reminder",
@@ -41,7 +42,7 @@ const Reminders = () => {
       badgeClass: "badge-3",
       message: `🚨 JUMJ FINAL NOTICE\n\nDear {name},\n\nThis is your FINAL reminder for the payment of {month}.\n\n⚠️ Payment is now OVERDUE\n💰 Amount Due: 50 ETB\n📅 Due Date: Passed\n\nPlease complete your payment immediately. If you have already paid, please ignore this message.\n\nContact admin if you have any questions.\n\n- JUMJ Social Affairs`
     }
-  };
+  }), []);
 
   // Wrap functions with useCallback to prevent infinite loops
   const getCurrentMonthInfo = useCallback(() => {
@@ -278,9 +279,8 @@ const Reminders = () => {
     return () => {
       if (autoScheduleInterval) clearInterval(autoScheduleInterval);
     };
-  }, [loadData, loadLogs, loadScheduleSettings, autoScheduleInterval]); // Added all dependencies
+  }, [loadData, loadLogs, loadScheduleSettings]);
 
-  // Other functions (sendTestReminder, previewMessage, clearLogs) remain the same
   const sendTestReminder = async () => {
     if (!testTelegram) {
       showToast("Please enter a Telegram username", true);
@@ -333,10 +333,6 @@ const Reminders = () => {
   const withTelegram = unpaidMembers.filter(m => m.telegram && m.telegram.trim());
   const withoutTelegram = unpaidMembers.length - withTelegram.length;
   const currentMonth = getCurrentMonthInfo();
-
-  // Fixed: Changed '==' to '===' in the JSX where needed
-  // In your template selection, ensure proper equality checks
-  // The rest of your JSX remains the same...
 
   if (loading) {
     return (
@@ -471,7 +467,7 @@ const Reminders = () => {
           {Object.entries(templates).map(([id, tpl]) => (
             <div 
               key={id}
-              className={`template-card ${currentTemplate === id ? 'active' : ''}`}
+              className={`template-card ${currentTemplate === parseInt(id) ? 'active' : ''}`}
               onClick={() => setCurrentTemplate(parseInt(id))}
             >
               <div className="template-header">
