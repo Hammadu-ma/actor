@@ -3,12 +3,12 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCWquYbzfwt1oEqvXEuQOMUyhIoSS-V4FE",
-  authDomain: "schoolhub-ada40.firebaseapp.com",
-  projectId: "schoolhub-ada40",
-  storageBucket: "schoolhub-ada40.firebasestorage.app",
-  messagingSenderId: "1004768478486",
-  appId: "1:1004768478486:web:910f3d3ed06885d68dfc37"
+  apiKey: "AIzaSyBXFcbQlTB1mXBsHd_bxnHdgS7dmHK_x3k",
+  authDomain: "exam-d9415.firebaseapp.com",
+  projectId: "exam-d9415",
+  storageBucket: "exam-d9415.firebasestorage.app",
+  messagingSenderId: "258742955197",
+  appId: "1:258742955197:web:a8e6a179f9e7c23c5b5bd4"
 };
 
 const app = initializeApp(firebaseConfig);
