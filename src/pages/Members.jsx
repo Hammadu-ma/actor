@@ -38,9 +38,9 @@ const Members = () => {
   const BOT_TOKEN = "8784743959:AAEMA8yJqQYVcV3nOkdhyLQKgc5r6OX3FEI";
 
   const roleOptions = [
-    { value: 'admin', label: 'Admin', icon: 'fa-crown', color: '#f59e0b', bg: '#fef3c7' },
-    { value: 'member', label: 'Member', icon: 'fa-user', color: '#3b82f6', bg: '#dbeafe' },
-    { value: 'viewer', label: 'Viewer', icon: 'fa-eye', color: '#10b981', bg: '#d1fae5' }
+    { value: 'admin', label: 'Admin', icon: 'fa-crown', color: '#f59e0b' },
+    { value: 'member', label: 'Member', icon: 'fa-user', color: '#3b82f6' },
+    { value: 'viewer', label: 'Viewer', icon: 'fa-eye', color: '#10b981' }
   ];
 
   useEffect(() => {
@@ -344,7 +344,7 @@ const Members = () => {
 
   const showToast = (message, isError = false) => {
     const toast = document.createElement('div');
-    toast.className = 'toast';
+    toast.className = 'member-toast';
     toast.innerHTML = `<i class="fa ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2800);
@@ -368,219 +368,163 @@ const Members = () => {
 
   if (loading) {
     return (
-      <div className="members-page">
-        <div className="app-container">
-          <div className="members-header">
-            <div className="header-title">
-              <h1>Member Management</h1>
-              <p>View, edit, and manage all registered members</p>
-            </div>
+      <div className="member-dashboard">
+        <div className="member-container">
+          <div className="member-header">
+            <h1>Members</h1>
+            <p>Manage your community members</p>
           </div>
-          <div className="stats-row">
+          <div className="member-stats-grid">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="skeleton-card">
-                <div className="skeleton-icon"></div>
-                <div className="skeleton-text"></div>
-                <div className="skeleton-text small"></div>
+              <div key={i} className="member-stat-skeleton">
+                <div className="member-stat-skeleton-icon"></div>
+                <div className="member-stat-skeleton-text"></div>
               </div>
             ))}
           </div>
-          <div className="skeleton-filter-bar"></div>
+          <div className="member-filter-skeleton"></div>
           {[1, 2, 3].map(i => (
-            <div key={i} className="skeleton-member-card">
-              <div className="skeleton-avatar"></div>
-              <div className="skeleton-details">
-                <div className="skeleton-line"></div>
-                <div className="skeleton-line short"></div>
-                <div className="skeleton-line"></div>
+            <div key={i} className="member-card-skeleton">
+              <div className="member-card-skeleton-avatar"></div>
+              <div className="member-card-skeleton-content">
+                <div className="member-card-skeleton-line"></div>
+                <div className="member-card-skeleton-line short"></div>
               </div>
             </div>
           ))}
         </div>
-        <style>{`
-          .skeleton-card {
-            flex: 0 0 auto;
-            width: calc(25% - 9px);
-            min-width: 140px;
-            background: white;
-            border-radius: 20px;
-            padding: 16px;
-            animation: skeletonPulse 1.5s ease-in-out infinite;
-          }
-          .skeleton-icon {
-            width: 44px;
-            height: 44px;
-            background: #e2e8f0;
-            border-radius: 14px;
-            margin-bottom: 12px;
-          }
-          .skeleton-text {
-            height: 24px;
-            background: #e2e8f0;
-            border-radius: 8px;
-            margin-bottom: 8px;
-          }
-          .skeleton-text.small {
-            height: 12px;
-            width: 60%;
-          }
-          .skeleton-filter-bar {
-            height: 120px;
-            background: white;
-            border-radius: 24px;
-            margin-bottom: 16px;
-            animation: skeletonPulse 1.5s ease-in-out infinite;
-          }
-          .skeleton-member-card {
-            background: white;
-            border-radius: 20px;
-            padding: 16px;
-            margin-bottom: 12px;
-            display: flex;
-            gap: 14px;
-            animation: skeletonPulse 1.5s ease-in-out infinite;
-          }
-          .skeleton-avatar {
-            width: 52px;
-            height: 52px;
-            background: #e2e8f0;
-            border-radius: 18px;
-          }
-          .skeleton-details {
-            flex: 1;
-          }
-          .skeleton-line {
-            height: 16px;
-            background: #e2e8f0;
-            border-radius: 8px;
-            margin-bottom: 8px;
-          }
-          .skeleton-line.short {
-            width: 60%;
-          }
-          @keyframes skeletonPulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-          }
-        `}</style>
       </div>
     );
   }
 
   return (
-    <div className="members-page">
-      <div className="app-container">
-        <div className="members-header">
-          <div className="header-title">
-            <h1>Member Management</h1>
-            <p>Tap any card to select • Bulk actions available</p>
+    <div className="member-dashboard">
+      <div className="member-container">
+        {/* Header */}
+        <div className="member-header">
+          <div>
+            <h1>Members</h1>
+            <p>{totalMembers} total members • {unpaidCount} unpaid</p>
+          </div>
+          <button className="member-export-btn" onClick={exportToCSV}>
+            <i className="fa fa-download"></i> Export
+          </button>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="member-stats-grid">
+          <div className="member-stat-card">
+            <div className="member-stat-icon users">
+              <i className="fa fa-users"></i>
+            </div>
+            <div className="member-stat-info">
+              <h3>{totalMembers}</h3>
+              <p>Total Members</p>
+            </div>
+          </div>
+          <div className="member-stat-card">
+            <div className="member-stat-icon paid">
+              <i className="fa fa-check-circle"></i>
+            </div>
+            <div className="member-stat-info">
+              <h3>{paidCount}</h3>
+              <p>Paid</p>
+            </div>
+          </div>
+          <div className="member-stat-card">
+            <div className="member-stat-icon unpaid">
+              <i className="fa fa-clock"></i>
+            </div>
+            <div className="member-stat-info">
+              <h3>{unpaidCount}</h3>
+              <p>Unpaid</p>
+            </div>
+          </div>
+          <div className="member-stat-card">
+            <div className="member-stat-icon month">
+              <i className="fa fa-calendar"></i>
+            </div>
+            <div className="member-stat-info">
+              <h3>{currentMonth.shortName}</h3>
+              <p>Current Month</p>
+            </div>
           </div>
         </div>
 
-        <div className="stats-row">
-          <div className="stat-card">
-            <div className="stat-icon" style={{ background: '#dbeafe' }}>
-              <i className="fa fa-users" style={{ color: '#3b82f6' }}></i>
-            </div>
-            <h3>{totalMembers}</h3>
-            <p>Total Members</p>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon" style={{ background: '#d1fae5' }}>
-              <i className="fa fa-check-circle" style={{ color: '#10b981' }}></i>
-            </div>
-            <h3>{paidCount}</h3>
-            <p>Paid This Month</p>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon" style={{ background: '#fee2e2' }}>
-              <i className="fa fa-clock" style={{ color: '#ef4444' }}></i>
-            </div>
-            <h3>{unpaidCount}</h3>
-            <p>Unpaid</p>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon" style={{ background: '#fef3c7' }}>
-              <i className="fa fa-calendar" style={{ color: '#f59e0b' }}></i>
-            </div>
-            <h3>{currentMonth.display.slice(0, 10)}</h3>
-            <p>Current Month</p>
-          </div>
-        </div>
-
-        <div className="action-bar-top">
-          <div className="bulk-actions">
-            <button className="btn-secondary" onClick={selectAllVisible}>
+        {/* Action Bar */}
+        <div className="member-action-bar">
+          <div className="member-bulk-actions">
+            <button className="member-btn-secondary" onClick={selectAllVisible}>
               <i className="fa fa-check-double"></i> Select All
             </button>
-            <button className="btn-secondary" onClick={deselectAll}>
+            <button className="member-btn-secondary" onClick={deselectAll}>
               <i className="fa fa-times"></i> Clear
             </button>
-            <button className="btn-danger" onClick={handleBulkDelete}>
+            <button className="member-btn-danger" onClick={handleBulkDelete}>
               <i className="fa fa-trash-alt"></i> Delete
             </button>
             {selectedMemberIds.size > 0 && (
-              <button className="btn-telegram" onClick={bulkSendReminders}>
+              <button className="member-btn-telegram" onClick={bulkSendReminders}>
                 <i className="fab fa-telegram"></i> Remind ({selectedMemberIds.size})
               </button>
             )}
           </div>
-          <button className="btn-primary" onClick={exportToCSV}>
-            <i className="fa fa-download"></i> Export CSV
+        </div>
+
+        {/* Filters */}
+        <div className="member-filters">
+          <div className="member-search">
+            <i className="fa fa-search"></i>
+            <input 
+              type="text" 
+              placeholder="Search members..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <select 
+            className="member-filter-select"
+            value={paymentStatusFilter} 
+            onChange={(e) => setPaymentStatusFilter(e.target.value)}
+          >
+            <option value="all">All</option>
+            <option value="paid">Paid</option>
+            <option value="unpaid">Unpaid</option>
+          </select>
+          <select 
+            className="member-filter-select"
+            value={deptFilter} 
+            onChange={(e) => setDeptFilter(e.target.value)}
+          >
+            <option value="all">All Departments</option>
+            {departments.map(dept => (
+              <option key={dept} value={dept}>{dept}</option>
+            ))}
+          </select>
+          <select 
+            className="member-filter-select"
+            value={yearFilter} 
+            onChange={(e) => setYearFilter(e.target.value)}
+          >
+            <option value="all">All Years</option>
+            {batchYears.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+          <button className="member-filter-reset" onClick={() => {
+            setSearchTerm('');
+            setPaymentStatusFilter('all');
+            setDeptFilter('all');
+            setYearFilter('all');
+          }}>
+            <i className="fa fa-undo"></i>
           </button>
         </div>
 
-        <div className="filter-bar">
-          <div className="filter-row">
-            <div className="filter-group search-group">
-              <label><i className="fa fa-search"></i> Search Member</label>
-              <input 
-                type="text" 
-                placeholder="Search by name, email, or phone..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="filter-group">
-              <label><i className="fa fa-credit-card"></i> Payment Status</label>
-              <select value={paymentStatusFilter} onChange={(e) => setPaymentStatusFilter(e.target.value)}>
-                <option value="all">All Members</option>
-                <option value="paid">Paid This Month</option>
-                <option value="unpaid">Unpaid This Month</option>
-              </select>
-            </div>
-            <div className="filter-group">
-              <label><i className="fa fa-building"></i> Department</label>
-              <select value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)}>
-                <option value="all">All Departments</option>
-                {departments.map(dept => (
-                  <option key={dept} value={dept}>{dept}</option>
-                ))}
-              </select>
-            </div>
-            <div className="filter-group">
-              <label><i className="fa fa-calendar"></i> Batch Year</label>
-              <select value={yearFilter} onChange={(e) => setYearFilter(e.target.value)}>
-                <option value="all">All Years</option>
-                {batchYears.map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
-            </div>
-            <button className="reset-filters" onClick={() => {
-              setSearchTerm('');
-              setPaymentStatusFilter('all');
-              setDeptFilter('all');
-              setYearFilter('all');
-            }}>
-              <i className="fa fa-undo"></i> Reset Filters
-            </button>
-          </div>
-        </div>
-
-        <div className="members-grid">
+        {/* Members List - Small Cards */}
+        <div className="member-list">
           {filteredMembers.length === 0 ? (
-            <div className="empty-state">
+            <div className="member-empty">
               <i className="fa fa-users-slash"></i>
               <h3>No members found</h3>
               <p>Try adjusting your search or filters</p>
@@ -594,64 +538,43 @@ const Members = () => {
               return (
                 <div 
                   key={member.id} 
-                  className={`member-card ${isSelected ? 'selected' : ''} ${!isPaid ? 'unpaid' : ''}`}
+                  className={`member-card ${isSelected ? 'selected' : ''}`}
                   onClick={() => toggleSelectMember(member.id)}
                 >
                   {isSelected && (
-                    <div className="selection-indicator">
+                    <div className="member-card-check">
                       <i className="fa fa-check"></i>
                     </div>
                   )}
                   
-                  <div className="member-card-header">
-                    <div className="member-avatar">{getInitials(member.fullName)}</div>
-                    <div className="member-basic">
+                  <div className="member-card-avatar">
+                    {getInitials(member.fullName)}
+                  </div>
+                  
+                  <div className="member-card-info">
+                    <div className="member-card-name">
                       <h3>{member.fullName || "Unknown"}</h3>
-                      <p>{member.email || "No email"}</p>
+                      <span className={`member-card-status ${isPaid ? 'paid' : 'unpaid'}`}>
+                        {isPaid ? 'Paid' : 'Unpaid'}
+                      </span>
                     </div>
-                    <div className={`payment-status ${isPaid ? 'status-paid' : 'status-unpaid'}`}>
-                      {isPaid ? '✓ Paid' : '⚠ Unpaid'}
+                    <div className="member-card-details">
+                      <span><i className="fa fa-envelope"></i> {member.email?.split('@')[0] || "No email"}</span>
+                      <span><i className="fa fa-building"></i> {member.department || "No dept"}</span>
                     </div>
-                  </div>
-                  
-                  <div className="member-details">
-                    <div className="detail-item">
-                      <i className="fa fa-phone"></i>
-                      <span>{member.phone || "No phone"}</span>
-                    </div>
-                    <div className="detail-item">
-                      <i className="fab fa-telegram"></i>
-                      <span>{member.telegram || "No telegram"}</span>
-                    </div>
-                    <div className="detail-item">
-                      <i className="fa fa-building"></i>
-                      <span>{member.department || "No department"}</span>
-                    </div>
-                    <div className="detail-item">
-                      <i className="fa fa-calendar"></i>
-                      <span>{member.batchYear || "No batch"}</span>
-                    </div>
-                    <div className="detail-item role-item">
-                      <i className={`fa ${roleInfo.icon}`} style={{ color: roleInfo.color }}></i>
-                      <span style={{ color: roleInfo.color, fontWeight: '500' }}>{roleInfo.label}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="member-footer">
-                    {!isPaid && (
-                      <button 
-                        className="action-btn remind" 
-                        onClick={(e) => sendTelegramReminder(member.id, member.fullName, member.telegram, e)}
-                      >
-                        <i className="fab fa-telegram"></i> Remind
+                    <div className="member-card-actions">
+                      {!isPaid && (
+                        <button className="member-action remind" onClick={(e) => sendTelegramReminder(member.id, member.fullName, member.telegram, e)}>
+                          <i className="fab fa-telegram"></i>
+                        </button>
+                      )}
+                      <button className="member-action edit" onClick={(e) => openEditModal(member, e)}>
+                        <i className="fa fa-pen"></i>
                       </button>
-                    )}
-                    <button className="action-btn edit" onClick={(e) => openEditModal(member, e)}>
-                      <i className="fa fa-pen"></i> Edit
-                    </button>
-                    <button className="action-btn delete" onClick={(e) => handleDeleteMember(member.id, member.fullName, e)}>
-                      <i className="fa fa-trash"></i> Delete
-                    </button>
+                      <button className="member-action delete" onClick={(e) => handleDeleteMember(member.id, member.fullName, e)}>
+                        <i className="fa fa-trash"></i>
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -660,1692 +583,940 @@ const Members = () => {
         </div>
       </div>
 
-      {/* Bulk Actions Bar - Beautiful Floating Bar */}
-      <div className={`bulk-actions-bar ${selectedMemberIds.size > 0 ? 'show' : ''}`}>
-        <span className="bulk-selected">
-          <i className="fa fa-check-circle"></i> {selectedMemberIds.size} member(s) selected
+      {/* Bulk Actions Bar */}
+      <div className={`member-bulk-bar ${selectedMemberIds.size > 0 ? 'show' : ''}`}>
+        <span className="member-bulk-count">
+          <i className="fa fa-check-circle"></i> {selectedMemberIds.size} selected
         </span>
-        <div className="bulk-buttons">
-          <button className="bulk-btn remind" onClick={bulkSendReminders}>
-            <i className="fab fa-telegram"></i> Remind All
+        <div className="member-bulk-buttons">
+          <button className="member-bulk-remind" onClick={bulkSendReminders}>
+            <i className="fab fa-telegram"></i> Remind
           </button>
-          <button className="bulk-btn delete" onClick={handleBulkDelete}>
+          <button className="member-bulk-delete" onClick={handleBulkDelete}>
             <i className="fa fa-trash-alt"></i> Delete
           </button>
-          <button className="bulk-btn close" onClick={deselectAll}>
+          <button className="member-bulk-close" onClick={deselectAll}>
             <i className="fa fa-times"></i> Close
           </button>
         </div>
       </div>
 
       {/* Edit Modal */}
-      <div className={`modal-overlay ${showEditModal ? 'show' : ''}`} onClick={closeEditModal}>
-        <div className="edit-modal" onClick={e => e.stopPropagation()}>
-          <div className="modal-header">
-            <h2><i className="fa fa-user-edit"></i> Edit Member</h2>
-            <p>Update member information and role</p>
-            <button className="close-modal" onClick={closeEditModal}>
-              <i className="fa fa-times"></i>
-            </button>
-          </div>
-          <div className="modal-body">
-            <form onSubmit={handleEditSubmit}>
-              <div className="form-group">
-                <label><i className="fa fa-user"></i> Full Name</label>
-                <input 
-                  type="text" 
-                  value={editForm.fullName}
-                  onChange={(e) => setEditForm({...editForm, fullName: e.target.value})}
-                  placeholder="Enter full name"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label><i className="fa fa-envelope"></i> Email Address</label>
-                <input 
-                  type="email" 
-                  value={editForm.email}
-                  onChange={(e) => setEditForm({...editForm, email: e.target.value})}
-                  placeholder="email@example.com"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label><i className="fa fa-phone"></i> Phone Number</label>
-                <input 
-                  type="tel" 
-                  value={editForm.phone}
-                  onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
-                  placeholder="+251 XX XXX XXXX"
-                />
-              </div>
-              <div className="form-group">
-                <label><i className="fab fa-telegram"></i> Telegram Username</label>
-                <input 
-                  type="text" 
-                  value={editForm.telegram}
-                  onChange={(e) => setEditForm({...editForm, telegram: e.target.value})}
-                  placeholder="@username"
-                />
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label><i className="fa fa-building"></i> Department</label>
+      {showEditModal && (
+        <div className="member-modal-overlay" onClick={closeEditModal}>
+          <div className="member-modal" onClick={e => e.stopPropagation()}>
+            <div className="member-modal-header">
+              <h2>Edit Member</h2>
+              <button className="member-modal-close" onClick={closeEditModal}>
+                <i className="fa fa-times"></i>
+              </button>
+            </div>
+            <div className="member-modal-body">
+              <form onSubmit={handleEditSubmit}>
+                <div className="member-form-group">
+                  <label>Full Name</label>
                   <input 
                     type="text" 
-                    value={editForm.department}
-                    onChange={(e) => setEditForm({...editForm, department: e.target.value})}
-                    placeholder="e.g., Computer Science"
+                    value={editForm.fullName}
+                    onChange={(e) => setEditForm({...editForm, fullName: e.target.value})}
+                    required
                   />
                 </div>
-                <div className="form-group">
-                  <label><i className="fa fa-calendar"></i> Batch Year</label>
+                <div className="member-form-group">
+                  <label>Email</label>
                   <input 
-                    type="text" 
-                    value={editForm.batchYear}
-                    onChange={(e) => setEditForm({...editForm, batchYear: e.target.value})}
-                    placeholder="e.g., 2024"
+                    type="email" 
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                    required
                   />
                 </div>
-              </div>
-              <div className="form-group">
-                <label><i className="fa fa-shield-alt"></i> User Role</label>
-                <select 
-                  value={editForm.role}
-                  onChange={(e) => setEditForm({...editForm, role: e.target.value})}
-                  className="role-select"
-                >
-                  {roleOptions.map(role => (
-                    <option key={role.value} value={role.value}>
-                      {role.label} - {role.value === 'admin' ? 'Full access' : role.value === 'member' ? 'Standard access' : 'Read-only access'}
-                    </option>
-                  ))}
-                </select>
-                <small className="role-hint">
-                  <i className="fa fa-info-circle"></i> 
-                  {editForm.role === 'admin' ? 'Admins have full access to all features' : 
-                    editForm.role === 'member' ? 'Members can make payments and view their profile' : 
-                    'Viewers can only see information'}
-                </small>
-              </div>
-              <div className="divider">
-                <h4><i className="fa fa-key"></i> Account Security</h4>
-                <button type="button" className="reset-password-btn" onClick={handleSendResetEmail}>
-                  <i className="fa fa-paper-plane"></i> Send Password Reset Link
-                </button>
-              </div>
-              <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={closeEditModal}>
-                  <i className="fa fa-times"></i> Cancel
-                </button>
-                <button type="submit" className="btn-save">
-                  <i className="fa fa-save"></i> Save Changes
-                </button>
-              </div>
-            </form>
+                <div className="member-form-row">
+                  <div className="member-form-group">
+                    <label>Phone</label>
+                    <input 
+                      type="tel" 
+                      value={editForm.phone}
+                      onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
+                    />
+                  </div>
+                  <div className="member-form-group">
+                    <label>Telegram</label>
+                    <input 
+                      type="text" 
+                      value={editForm.telegram}
+                      onChange={(e) => setEditForm({...editForm, telegram: e.target.value})}
+                      placeholder="@username"
+                    />
+                  </div>
+                </div>
+                <div className="member-form-row">
+                  <div className="member-form-group">
+                    <label>Department</label>
+                    <input 
+                      type="text" 
+                      value={editForm.department}
+                      onChange={(e) => setEditForm({...editForm, department: e.target.value})}
+                    />
+                  </div>
+                  <div className="member-form-group">
+                    <label>Batch Year</label>
+                    <input 
+                      type="text" 
+                      value={editForm.batchYear}
+                      onChange={(e) => setEditForm({...editForm, batchYear: e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div className="member-form-group">
+                  <label>Role</label>
+                  <select 
+                    value={editForm.role}
+                    onChange={(e) => setEditForm({...editForm, role: e.target.value})}
+                  >
+                    {roleOptions.map(role => (
+                      <option key={role.value} value={role.value}>{role.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="member-form-divider">
+                  <button type="button" className="member-reset-password" onClick={handleSendResetEmail}>
+                    <i className="fa fa-key"></i> Send Password Reset
+                  </button>
+                </div>
+                <div className="member-modal-actions">
+                  <button type="button" className="member-btn-cancel" onClick={closeEditModal}>Cancel</button>
+                  <button type="submit" className="member-btn-save">Save Changes</button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Confirmation Dialog */}
-      <div className={`confirm-overlay ${showConfirmDialog ? 'show' : ''}`} onClick={() => setShowConfirmDialog(false)}>
-        <div className="confirm-dialog" onClick={e => e.stopPropagation()}>
-          <div className="confirm-icon">
-            <i className="fa fa-exclamation-triangle"></i>
-          </div>
-          <h3>Confirm Delete</h3>
-          <p>{confirmData.message}</p>
-          <div className="confirm-actions">
-            <button className="confirm-cancel" onClick={() => setShowConfirmDialog(false)}>
-              <i className="fa fa-times"></i> Cancel
-            </button>
-            <button className="confirm-delete" onClick={confirmData.onConfirm}>
-              <i className="fa fa-trash"></i> Delete
-            </button>
+      {/* Confirm Dialog */}
+      {showConfirmDialog && (
+        <div className="member-confirm-overlay" onClick={() => setShowConfirmDialog(false)}>
+          <div className="member-confirm-dialog" onClick={e => e.stopPropagation()}>
+            <div className="member-confirm-icon">
+              <i className="fa fa-exclamation-triangle"></i>
+            </div>
+            <h3>Confirm Delete</h3>
+            <p>{confirmData.message}</p>
+            <div className="member-confirm-actions">
+              <button className="member-confirm-cancel" onClick={() => setShowConfirmDialog(false)}>Cancel</button>
+              <button className="member-confirm-delete" onClick={confirmData.onConfirm}>Delete</button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <style>{`
-       /* ============================================
-   MEMBERS PAGE - COMPLETE UNIFIED CSS
-   Tap-to-Select • Bulk Actions • Glassmorphism
-   ============================================ */
-
-/* Import Font Awesome */
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css');
-
-/* ============================================
-   GLOBAL STYLES
-   ============================================ */
-:root {
-  --primary: #4f46e5;
-  --primary-light: #818cf8;
-  --primary-dark: #4338ca;
-  --success: #10b981;
-  --success-light: #34d399;
-  --danger: #ef4444;
-  --danger-light: #f87171;
-  --warning: #f59e0b;
-  --info: #06b6d4;
-  --telegram: #3b82f6;
-  
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-tertiary: #64748b;
-  
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.8);
-  --blur-sm: blur(8px);
-  --blur-md: blur(16px);
-  --blur-lg: blur(24px);
-  
-  --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 10px 30px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 20px 50px rgba(15, 23, 42, 0.12);
-  --shadow-xl: 0 30px 70px rgba(15, 23, 42, 0.15);
-  
-  --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-bounce: all 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-}
-
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
-  color: var(--text-primary);
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-/* ============================================
-   MEMBERS PAGE MAIN CONTAINER
-   ============================================ */
-.members-page {
-  min-height: 100vh;
-  background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
-  position: relative;
-}
-
-.members-page::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    radial-gradient(circle at 0% 0%, rgba(79, 70, 229, 0.06) 0%, transparent 40%),
-    radial-gradient(circle at 100% 100%, rgba(6, 182, 212, 0.06) 0%, transparent 40%);
-  pointer-events: none;
-  z-index: -1;
-}
-
-/* App Container */
-.members-page .app-container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 20px 20px 100px;
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
-}
-
-@media (min-width: 1280px) {
-  .members-page .app-container {
-    max-width: 1280px;
-  }
-}
-
-/* ============================================
-   HEADER SECTION
-   ============================================ */
-.members-page .members-header {
-  margin-bottom: 32px;
-  padding: 8px 0;
-}
-
-.members-page .header-title h1 {
-  font-size: 36px;
-  font-weight: 800;
-  background: linear-gradient(135deg, #0f172a 0%, var(--primary) 50%, var(--info) 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  letter-spacing: -0.02em;
-  margin-bottom: 8px;
-}
-
-.members-page .header-title p {
-  color: var(--text-tertiary);
-  font-size: 14px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.members-page .header-title p::before {
-  content: '👆';
-  font-size: 14px;
-}
-
-/* ============================================
-   STATS CARDS
-   ============================================ */
-.members-page .stats-row {
-  display: flex;
-  gap: 16px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding-bottom: 12px;
-  margin-bottom: 32px;
-  -webkit-overflow-scrolling: touch;
-}
-
-.members-page .stats-row::-webkit-scrollbar {
-  display: none;
-}
-
-.members-page .stat-card {
-  flex: 0 0 auto;
-  width: calc(25% - 12px);
-  min-width: 150px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur-md);
-  border-radius: 28px;
-  padding: 20px 18px;
-  scroll-snap-align: start;
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--glass-border);
-  transition: var(--transition-bounce);
-  position: relative;
-  overflow: hidden;
-}
-
-.members-page .stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--primary), var(--info));
-  opacity: 0;
-  transition: var(--transition-base);
-}
-
-.members-page .stat-card:hover::before {
-  opacity: 1;
-}
-
-.members-page .stat-card:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: var(--shadow-lg);
-  border-color: rgba(79, 70, 229, 0.2);
-}
-
-.members-page .stat-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26px;
-  margin-bottom: 16px;
-  transition: var(--transition-base);
-}
-
-.members-page .stat-card:hover .stat-icon {
-  transform: scale(1.05) rotate(5deg);
-}
-
-.members-page .stat-card h3 {
-  font-size: 28px;
-  font-weight: 800;
-  margin-bottom: 4px;
-  background: linear-gradient(135deg, var(--text-primary), var(--primary-dark));
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-}
-
-.members-page .stat-card p {
-  color: var(--text-tertiary);
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* ============================================
-   ACTION BAR
-   ============================================ */
-.members-page .action-bar-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.members-page .bulk-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.members-page .btn-secondary {
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur-sm);
-  border: 1px solid var(--glass-border);
-  padding: 12px 20px;
-  border-radius: 40px;
-  color: var(--text-secondary);
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  transition: var(--transition-base);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: inherit;
-}
-
-.members-page .btn-secondary:hover {
-  background: white;
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
-  border-color: var(--primary-light);
-}
-
-.members-page .btn-secondary:active {
-  transform: translateY(0) scale(0.98);
-}
-
-.members-page .btn-danger {
-  background: rgba(239, 68, 68, 0.1);
-  backdrop-filter: var(--blur-sm);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  padding: 12px 20px;
-  border-radius: 40px;
-  color: var(--danger);
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  transition: var(--transition-base);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.members-page .btn-danger:hover {
-  background: rgba(239, 68, 68, 0.15);
-  transform: translateY(-2px);
-  border-color: var(--danger);
-}
-
-.members-page .btn-danger:active {
-  transform: translateY(0) scale(0.98);
-}
-
-.members-page .btn-telegram {
-  background: rgba(59, 130, 246, 0.1);
-  backdrop-filter: var(--blur-sm);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  padding: 12px 20px;
-  border-radius: 40px;
-  color: var(--telegram);
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  transition: var(--transition-base);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.members-page .btn-telegram:hover {
-  background: rgba(59, 130, 246, 0.15);
-  transform: translateY(-2px);
-}
-
-.members-page .btn-primary {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  border: none;
-  padding: 12px 24px;
-  border-radius: 40px;
-  color: white;
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  transition: var(--transition-base);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-  position: relative;
-  overflow: hidden;
-}
-
-.members-page .btn-primary::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
-}
-
-.members-page .btn-primary:hover::before {
-  width: 300px;
-  height: 300px;
-}
-
-.members-page .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
-}
-
-.members-page .btn-primary:active {
-  transform: translateY(0) scale(0.98);
-}
-
-/* ============================================
-   FILTER BAR
-   ============================================ */
-.members-page .filter-bar {
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur-md);
-  border-radius: 32px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--glass-border);
-  transition: var(--transition-base);
-}
-
-.members-page .filter-bar:hover {
-  box-shadow: var(--shadow-lg);
-}
-
-.members-page .filter-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: flex-end;
-}
-
-.members-page .filter-group {
-  flex: 1;
-  min-width: 160px;
-}
-
-.members-page .filter-group label {
-  display: block;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-tertiary);
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.members-page .filter-group input,
-.members-page .filter-group select {
-  width: 100%;
-  padding: 14px 16px;
-  border: 1.5px solid rgba(0, 0, 0, 0.06);
-  border-radius: 20px;
-  font-size: 14px;
-  outline: none;
-  font-family: inherit;
-  background: rgba(255, 255, 255, 0.9);
-  transition: var(--transition-base);
-}
-
-.members-page .filter-group input:hover,
-.members-page .filter-group select:hover {
-  border-color: var(--primary-light);
-}
-
-.members-page .filter-group input:focus,
-.members-page .filter-group select:focus {
-  border-color: var(--primary);
-  background: white;
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
-  transform: translateY(-1px);
-}
-
-.members-page .search-group {
-  flex: 2;
-  min-width: 200px;
-}
-
-.members-page .search-group input {
-  padding-left: 48px;
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="%2394a3b8"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>');
-  background-repeat: no-repeat;
-  background-position: 18px center;
-  background-size: 20px;
-}
-
-.members-page .reset-filters {
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur-sm);
-  border: 1px solid var(--glass-border);
-  padding: 14px 20px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  transition: var(--transition-base);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--text-secondary);
-}
-
-.members-page .reset-filters:hover {
-  background: white;
-  transform: translateY(-2px);
-  border-color: var(--primary);
-}
-
-.members-page .reset-filters:active {
-  transform: translateY(0) scale(0.98);
-}
-
-/* ============================================
-   MEMBERS GRID & CARDS
-   ============================================ */
-.members-page .members-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* Member Card - Tap to Select */
-.members-page .member-card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur-md);
-  border-radius: 32px;
-  padding: 20px;
-  transition: var(--transition-bounce);
-  border: 1px solid var(--glass-border);
-  position: relative;
-  cursor: pointer;
-  animation: cardFadeIn 0.4s ease-out;
-}
-
-@keyframes cardFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.members-page .member-card:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: var(--shadow-lg);
-  border-color: rgba(79, 70, 229, 0.3);
-  background: rgba(255, 255, 255, 0.95);
-}
-
-.members-page .member-card:active {
-  transform: scale(0.99);
-}
-
-/* Selected State */
-.members-page .member-card.selected {
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(6, 182, 212, 0.08));
-  border: 2px solid var(--primary);
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15), 0 20px 40px rgba(79, 70, 229, 0.2);
-}
-
-/* Unpaid Card Left Border Accent */
-.members-page .member-card.unpaid {
-  border-left: 4px solid var(--danger);
-}
-
-/* Selection Indicator Badge */
-.members-page .selection-indicator {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, var(--primary), var(--info));
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 14px;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
-  animation: indicatorPop 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
-  z-index: 10;
-}
-
-@keyframes indicatorPop {
-  0% {
-    transform: scale(0) rotate(-180deg);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.2) rotate(0deg);
-  }
-  100% {
-    transform: scale(1) rotate(0deg);
-  }
-}
-
-/* Card Header */
-.members-page .member-card-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-
-.members-page .member-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 24px;
-  background: linear-gradient(135deg, var(--primary), var(--primary-light));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  font-weight: 700;
-  color: white;
-  flex-shrink: 0;
-  transition: var(--transition-base);
-  box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
-}
-
-.members-page .member-card.selected .member-avatar {
-  transform: scale(1.05);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
-}
-
-.members-page .member-basic {
-  flex: 1;
-}
-
-.members-page .member-basic h3 {
-  font-size: 17px;
-  font-weight: 700;
-  margin-bottom: 6px;
-  color: var(--text-primary);
-}
-
-.members-page .member-card.selected .member-basic h3 {
-  color: var(--primary);
-}
-
-.members-page .member-basic p {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  word-break: break-word;
-}
-
-/* Payment Status */
-.members-page .payment-status {
-  padding: 5px 12px;
-  border-radius: 30px;
-  font-size: 11px;
-  font-weight: 700;
-  white-space: nowrap;
-  letter-spacing: 0.3px;
-}
-
-.members-page .status-paid {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(52, 211, 153, 0.1));
-  color: var(--success);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-.members-page .status-unpaid {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(248, 113, 113, 0.08));
-  color: var(--danger);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-/* Member Details */
-.members-page .member-details {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 16px;
-  padding: 12px 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.members-page .detail-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.members-page .detail-item i {
-  width: 20px;
-  font-size: 14px;
-  color: var(--primary-light);
-}
-
-.members-page .member-card.selected .detail-item {
-  color: var(--text-primary);
-}
-
-.members-page .member-card.selected .detail-item i {
-  color: var(--primary);
-}
-
-/* Footer Buttons */
-.members-page .member-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.members-page .action-btn {
-  padding: 8px 18px;
-  border-radius: 40px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition-base);
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: inherit;
-}
-
-.members-page .action-btn.remind {
-  background: var(--telegram);
-  color: white;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-}
-
-.members-page .action-btn.remind:hover {
-  transform: translateY(-2px);
-  background: #2563eb;
-}
-
-.members-page .action-btn.edit {
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur-sm);
-  color: var(--text-secondary);
-  border: 1px solid var(--glass-border);
-}
-
-.members-page .action-btn.edit:hover {
-  background: white;
-  transform: translateY(-2px);
-}
-
-.members-page .action-btn.delete {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--danger);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-}
-
-.members-page .action-btn.delete:hover {
-  background: rgba(239, 68, 68, 0.15);
-  transform: translateY(-2px);
-}
-
-/* ============================================
-   BULK ACTIONS FLOATING BAR
-   ============================================ */
-.members-page .bulk-actions-bar {
-  position: fixed;
-  bottom: 100px;
-  left: 20px;
-  right: 20px;
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(25px);
-  border-radius: 80px;
-  padding: 12px 24px;
-  display: none;
-  gap: 16px;
-  z-index: 200;
-  box-shadow: var(--shadow-xl);
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  transition: var(--transition-bounce);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-@media (min-width: 768px) {
-  .members-page .bulk-actions-bar {
-    left: auto;
-    right: 20px;
-    width: auto;
-    min-width: 360px;
-  }
-}
-
-.members-page .bulk-actions-bar.show {
-  display: flex;
-  animation: slideUp 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(100px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.members-page .bulk-selected {
-  background: rgba(255, 255, 255, 0.15);
-  padding: 8px 18px;
-  border-radius: 60px;
-  font-size: 14px;
-  font-weight: 600;
-  color: white;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.members-page .bulk-buttons {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.members-page .bulk-btn {
-  padding: 8px 20px;
-  border-radius: 60px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 13px;
-  transition: var(--transition-base);
-  font-family: inherit;
-}
-
-.members-page .bulk-btn.remind {
-  background: var(--telegram);
-  color: white;
-}
-
-.members-page .bulk-btn.remind:hover {
-  transform: translateY(-2px);
-  background: #2563eb;
-}
-
-.members-page .bulk-btn.delete {
-  background: var(--danger);
-  color: white;
-}
-
-.members-page .bulk-btn.delete:hover {
-  transform: translateY(-2px);
-  background: #dc2626;
-}
-
-.members-page .bulk-btn.close {
-  background: #475569;
-  color: white;
-}
-
-.members-page .bulk-btn.close:hover {
-  transform: translateY(-2px);
-  background: #334155;
-}
-
-/* ============================================
-   EDIT MODAL - BOTTOM SHEET
-   ============================================ */
-.members-page .modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(12px);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  z-index: 1000;
-  opacity: 0;
-  visibility: hidden;
-  transition: var(--transition-base);
-}
-
-.members-page .modal-overlay.show {
-  opacity: 1;
-  visibility: visible;
-}
-
-.members-page .edit-modal {
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(30px);
-  border-radius: 40px 40px 0 0;
-  width: 100%;
-  max-width: 550px;
-  max-height: 85vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  animation: sheetSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.15);
-}
-
-@keyframes sheetSlideUp {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-.members-page .edit-modal .modal-header {
-  padding: 24px 28px 20px;
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  color: white;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.members-page .edit-modal .modal-header h2 {
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 6px;
-  letter-spacing: -0.3px;
-}
-
-.members-page .edit-modal .modal-header h2 i {
-  margin-right: 10px;
-}
-
-.members-page .edit-modal .modal-header p {
-  font-size: 13px;
-  opacity: 0.8;
-}
-
-.members-page .edit-modal .close-modal {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: rgba(255, 255, 255, 0.15);
-  border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  color: white;
-  cursor: pointer;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: var(--transition-base);
-}
-
-.members-page .edit-modal .close-modal:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: scale(1.05);
-}
-
-.members-page .edit-modal .close-modal:active {
-  transform: scale(0.95);
-}
-
-.members-page .edit-modal .modal-body {
-  padding: 24px;
-  overflow-y: auto;
-}
-
-.members-page .edit-modal .form-group {
-  margin-bottom: 20px;
-}
-
-.members-page .edit-modal .form-group label {
-  display: block;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-tertiary);
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.members-page .edit-modal .form-group label i {
-  margin-right: 6px;
-}
-
-.members-page .edit-modal .form-group input,
-.members-page .edit-modal .form-group select {
-  width: 100%;
-  padding: 14px 18px;
-  border: 1.5px solid rgba(0, 0, 0, 0.06);
-  border-radius: 20px;
-  font-size: 14px;
-  outline: none;
-  background: rgba(255, 255, 255, 0.95);
-  font-family: inherit;
-  transition: var(--transition-base);
-}
-
-.members-page .edit-modal .form-group input:focus,
-.members-page .edit-modal .form-group select:focus {
-  border-color: var(--primary);
-  background: white;
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
-  transform: translateY(-1px);
-}
-
-.members-page .edit-modal .form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.members-page .edit-modal .role-hint {
-  display: block;
-  margin-top: 8px;
-  font-size: 11px;
-  color: var(--text-tertiary);
-}
-
-.members-page .edit-modal .role-hint i {
-  margin-right: 4px;
-}
-
-.members-page .edit-modal .divider {
-  margin: 20px 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
-  padding-top: 20px;
-}
-
-.members-page .edit-modal .divider h4 {
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--text-primary);
-}
-
-.members-page .edit-modal .reset-password-btn {
-  width: 100%;
-  padding: 14px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  color: #b45309;
-  border: none;
-  font-weight: 700;
-  cursor: pointer;
-  transition: var(--transition-base);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  font-family: inherit;
-}
-
-.members-page .edit-modal .reset-password-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
-}
-
-.members-page .edit-modal .reset-password-btn:active {
-  transform: translateY(0) scale(0.97);
-}
-
-.members-page .edit-modal .modal-actions {
-  display: flex;
-  gap: 14px;
-  margin-top: 24px;
-}
-
-.members-page .edit-modal .modal-actions button {
-  flex: 1;
-  padding: 14px;
-  border-radius: 40px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  border: none;
-  font-family: inherit;
-  transition: var(--transition-base);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.members-page .edit-modal .btn-save {
-  background: linear-gradient(135deg, var(--success), #059669);
-  color: white;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
-
-.members-page .edit-modal .btn-save:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
-}
-
-.members-page .edit-modal .btn-save:active {
-  transform: translateY(0) scale(0.97);
-}
-
-.members-page .edit-modal .btn-cancel {
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur-sm);
-  color: var(--text-secondary);
-  border: 1px solid var(--glass-border);
-}
-
-.members-page .edit-modal .btn-cancel:hover {
-  background: white;
-  transform: translateY(-2px);
-}
-
-.members-page .edit-modal .btn-cancel:active {
-  transform: translateY(0) scale(0.97);
-}
-
-/* ============================================
-   CONFIRMATION DIALOG
-   ============================================ */
-.members-page .confirm-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(12px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1100;
-  opacity: 0;
-  visibility: hidden;
-  transition: var(--transition-base);
-}
-
-.members-page .confirm-overlay.show {
-  opacity: 1;
-  visibility: visible;
-}
-
-.members-page .confirm-dialog {
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(20px);
-  border-radius: 48px;
-  padding: 32px 28px;
-  width: 90%;
-  max-width: 360px;
-  text-align: center;
-  animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-xl);
-}
-
-@keyframes modalSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.members-page .confirm-dialog .confirm-icon i {
-  font-size: 64px;
-  color: var(--danger);
-  margin-bottom: 20px;
-  display: inline-block;
-  animation: shake 0.5s ease;
-}
-
-@keyframes shake {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-10deg); }
-  75% { transform: rotate(10deg); }
-}
-
-.members-page .confirm-dialog h3 {
-  font-size: 22px;
-  font-weight: 800;
-  margin-bottom: 10px;
-  color: var(--text-primary);
-}
-
-.members-page .confirm-dialog p {
-  color: var(--text-tertiary);
-  font-size: 14px;
-  margin-bottom: 28px;
-  line-height: 1.5;
-}
-
-.members-page .confirm-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.members-page .confirm-actions button {
-  flex: 1;
-  padding: 14px;
-  border-radius: 60px;
-  font-weight: 700;
-  cursor: pointer;
-  border: none;
-  font-family: inherit;
-  transition: var(--transition-base);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 14px;
-}
-
-.members-page .confirm-cancel {
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur-sm);
-  color: var(--text-secondary);
-  border: 1px solid var(--glass-border);
-}
-
-.members-page .confirm-cancel:hover {
-  background: white;
-  transform: translateY(-2px);
-}
-
-.members-page .confirm-cancel:active {
-  transform: translateY(0) scale(0.97);
-}
-
-.members-page .confirm-delete {
-  background: linear-gradient(135deg, var(--danger), #dc2626);
-  color: white;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}
-
-.members-page .confirm-delete:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
-}
-
-.members-page .confirm-delete:active {
-  transform: translateY(0) scale(0.97);
-}
-
-/* ============================================
-   TOAST NOTIFICATION
-   ============================================ */
-.members-page .toast {
-  position: fixed;
-  bottom: 100px;
-  left: 20px;
-  right: 20px;
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(20px);
-  color: white;
-  text-align: center;
-  padding: 16px;
-  border-radius: 80px;
-  z-index: 1001;
-  font-weight: 600;
-  font-size: 14px;
-  animation: toastSlideUp 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
-  box-shadow: var(--shadow-xl);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  letter-spacing: 0.3px;
-}
-
-@media (min-width: 768px) {
-  .members-page .toast {
-    left: auto;
-    right: 20px;
-    min-width: 320px;
-    width: auto;
-  }
-}
-
-@keyframes toastSlideUp {
-  from {
-    transform: translateY(100px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* ============================================
-   EMPTY STATE
-   ============================================ */
-.members-page .empty-state {
-  text-align: center;
-  padding: 80px 20px;
-  color: var(--text-tertiary);
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur-md);
-  border-radius: 40px;
-  border: 1px solid var(--glass-border);
-  animation: fadeIn 0.5s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.members-page .empty-state i {
-  font-size: 80px;
-  margin-bottom: 20px;
-  display: block;
-  opacity: 0.7;
-}
-
-.members-page .empty-state h3 {
-  font-size: 20px;
-  margin-bottom: 10px;
-  color: var(--text-secondary);
-  font-weight: 700;
-}
-
-.members-page .empty-state p {
-  font-size: 14px;
-}
-
-/* ============================================
-   SKELETON LOADER
-   ============================================ */
-.members-page .skeleton-card {
-  flex: 0 0 auto;
-  width: calc(25% - 12px);
-  min-width: 140px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur-sm);
-  border-radius: 28px;
-  padding: 20px;
-  animation: skeletonPulse 1.5s ease-in-out infinite;
-  border: 1px solid var(--glass-border);
-}
-
-.members-page .skeleton-icon {
-  width: 56px;
-  height: 56px;
-  background: rgba(0, 0, 0, 0.08);
-  border-radius: 20px;
-  margin-bottom: 16px;
-}
-
-.members-page .skeleton-text {
-  height: 24px;
-  background: rgba(0, 0, 0, 0.08);
-  border-radius: 8px;
-  margin-bottom: 8px;
-}
-
-.members-page .skeleton-text.small {
-  height: 12px;
-  width: 60%;
-}
-
-.members-page .skeleton-filter-bar {
-  height: 140px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur-sm);
-  border-radius: 32px;
-  margin-bottom: 20px;
-  animation: skeletonPulse 1.5s ease-in-out infinite;
-  border: 1px solid var(--glass-border);
-}
-
-.members-page .skeleton-member-card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur-sm);
-  border-radius: 32px;
-  padding: 20px;
-  margin-bottom: 16px;
-  display: flex;
-  gap: 16px;
-  animation: skeletonPulse 1.5s ease-in-out infinite;
-  border: 1px solid var(--glass-border);
-}
-
-.members-page .skeleton-avatar {
-  width: 60px;
-  height: 60px;
-  background: rgba(0, 0, 0, 0.08);
-  border-radius: 24px;
-  flex-shrink: 0;
-}
-
-.members-page .skeleton-details {
-  flex: 1;
-}
-
-.members-page .skeleton-line {
-  height: 16px;
-  background: rgba(0, 0, 0, 0.08);
-  border-radius: 8px;
-  margin-bottom: 8px;
-}
-
-.members-page .skeleton-line.short {
-  width: 60%;
-}
-
-@keyframes skeletonPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-/* ============================================
-   RESPONSIVE DESIGN
-   ============================================ */
-@media (max-width: 768px) {
-  .members-page .app-container {
-    padding: 16px 16px 100px;
-  }
-
-  .members-page .stat-card {
-    min-width: 130px;
-    padding: 16px;
-  }
-
-  .members-page .stat-card h3 {
-    font-size: 24px;
-  }
-
-  .members-page .filter-group {
-    min-width: 100%;
-  }
-
-  .members-page .edit-modal .form-row {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
-
-  .members-page .member-details {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .members-page .member-footer {
-    flex-wrap: wrap;
-  }
-
-  .members-page .action-btn {
-    flex: 1;
-    justify-content: center;
-  }
-
-  .members-page .bulk-actions-bar {
-    bottom: 80px;
-    flex-direction: column;
-    border-radius: 32px;
-  }
-
-  .members-page .bulk-buttons {
-    width: 100%;
-  }
-
-  .members-page .bulk-btn {
-    flex: 1;
-    text-align: center;
-  }
-
-  .members-page .member-card-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .members-page .payment-status {
-    align-self: flex-start;
-  }
-
-  .members-page .action-bar-top {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .members-page .btn-primary {
-    justify-content: center;
-  }
-}
-
-@media (max-width: 640px) {
-  .members-page .member-details {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-  
-  .members-page .member-card-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .members-page .payment-status {
-    margin-left: 0;
-  }
-  
-  .members-page .member-footer {
-    flex-direction: column;
-  }
-  
-  .members-page .action-btn {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .members-page .bulk-actions {
-    flex-wrap: wrap;
-  }
-
-  .members-page .action-bar-top {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .members-page .btn-primary {
-    justify-content: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .members-page .stat-card {
-    min-width: 110px;
-    padding: 14px;
-  }
-
-  .members-page .stat-card h3 {
-    font-size: 20px;
-  }
-
-  .members-page .stat-icon {
-    width: 48px;
-    height: 48px;
-    font-size: 22px;
-  }
-
-  .members-page .member-avatar {
-    width: 50px;
-    height: 50px;
-    font-size: 20px;
-  }
-
-  .members-page .member-basic h3 {
-    font-size: 15px;
-  }
-
-  .members-page .action-btn {
-    padding: 8px 12px;
-    font-size: 11px;
-  }
-
-  .members-page .edit-modal .modal-header h2 {
-    font-size: 20px;
-  }
-
-  .members-page .header-title h1 {
-    font-size: 28px;
-  }
-}
-
-/* ============================================
-   PERFORMANCE & ACCESSIBILITY
-   ============================================ */
-.members-page .stat-card,
-.members-page .member-card,
-.members-page .btn-primary,
-.members-page .btn-secondary,
-.members-page .btn-danger,
-.members-page .action-btn,
-.members-page .bulk-btn {
-  will-change: transform;
-}
-
-.members-page *:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
+        /* ============================================
+           MODERN MINIMAL 2026 DESIGN
+           Small cards, clean layout
+        ============================================ */
+
+        .member-dashboard {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          background: #f8fafc;
+          min-height: 100vh;
+        }
+
+        .member-container {
+          max-width: 100%;
+          margin: 0 auto;
+          padding: 20px 16px 100px;
+        }
+
+        /* Header */
+        .member-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 24px;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+
+        .member-header h1 {
+          font-size: 28px;
+          font-weight: 700;
+          letter-spacing: -0.5px;
+          color: #0f172a;
+          margin-bottom: 4px;
+        }
+
+        .member-header p {
+          color: #64748b;
+          font-size: 13px;
+        }
+
+        .member-export-btn {
+          background: white;
+          border: 1px solid #e2e8f0;
+          padding: 8px 16px;
+          border-radius: 10px;
+          font-size: 13px;
+          font-weight: 500;
+          color: #475569;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          transition: all 0.2s;
+        }
+
+        .member-export-btn:hover {
+          background: #f1f5f9;
+        }
+
+        /* Stats Cards */
+        .member-stats-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 12px;
+          margin-bottom: 24px;
+        }
+
+        @media (max-width: 640px) {
+          .member-stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+
+        .member-stat-card {
+          background: white;
+          border-radius: 16px;
+          padding: 14px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+          border: 1px solid #eef2f8;
+        }
+
+        .member-stat-icon {
+          width: 48px;
+          height: 48px;
+          border-radius: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 22px;
+        }
+
+        .member-stat-icon.users {
+          background: #eef2ff;
+          color: #4f46e5;
+        }
+
+        .member-stat-icon.paid {
+          background: #dcfce7;
+          color: #10b981;
+        }
+
+        .member-stat-icon.unpaid {
+          background: #fee2e2;
+          color: #ef4444;
+        }
+
+        .member-stat-icon.month {
+          background: #fef3c7;
+          color: #f59e0b;
+        }
+
+        .member-stat-info h3 {
+          font-size: 22px;
+          font-weight: 700;
+          color: #0f172a;
+        }
+
+        .member-stat-info p {
+          font-size: 11px;
+          color: #64748b;
+          font-weight: 500;
+        }
+
+        /* Action Bar */
+        .member-action-bar {
+          margin-bottom: 16px;
+        }
+
+        .member-bulk-actions {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .member-btn-secondary {
+          background: #f1f5f9;
+          border: none;
+          padding: 8px 14px;
+          border-radius: 10px;
+          color: #475569;
+          font-weight: 500;
+          font-size: 12px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          transition: all 0.2s;
+        }
+
+        .member-btn-secondary:active {
+          transform: scale(0.96);
+        }
+
+        .member-btn-danger {
+          background: #fee2e2;
+          border: none;
+          padding: 8px 14px;
+          border-radius: 10px;
+          color: #dc2626;
+          font-weight: 500;
+          font-size: 12px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .member-btn-danger:active {
+          transform: scale(0.96);
+        }
+
+        .member-btn-telegram {
+          background: #e0f2fe;
+          border: none;
+          padding: 8px 14px;
+          border-radius: 10px;
+          color: #0284c7;
+          font-weight: 500;
+          font-size: 12px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        /* Filters */
+        .member-filters {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+          margin-bottom: 20px;
+        }
+
+        .member-search {
+          flex: 1;
+          min-width: 180px;
+          position: relative;
+        }
+
+        .member-search i {
+          position: absolute;
+          left: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #94a3b8;
+          font-size: 13px;
+        }
+
+        .member-search input {
+          width: 100%;
+          padding: 10px 12px 10px 36px;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          font-size: 13px;
+          font-family: inherit;
+          background: white;
+          transition: all 0.2s;
+        }
+
+        .member-search input:focus {
+          outline: none;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+
+        .member-filter-select {
+          padding: 10px 14px;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          font-size: 13px;
+          font-family: inherit;
+          background: white;
+          color: #334155;
+          cursor: pointer;
+        }
+
+        .member-filter-select:focus {
+          outline: none;
+          border-color: #3b82f6;
+        }
+
+        .member-filter-reset {
+          width: 40px;
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          cursor: pointer;
+          color: #64748b;
+          transition: all 0.2s;
+        }
+
+        .member-filter-reset:hover {
+          background: #f1f5f9;
+        }
+
+        /* Member List - Small Compact Cards */
+        .member-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .member-card {
+          background: white;
+          border-radius: 14px;
+          padding: 14px;
+          display: flex;
+          gap: 14px;
+          cursor: pointer;
+          transition: all 0.2s;
+          border: 1px solid #eef2f8;
+          position: relative;
+        }
+
+        .member-card:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .member-card.selected {
+          background: #f0f9ff;
+          border-color: #3b82f6;
+        }
+
+        .member-card-check {
+          position: absolute;
+          top: -6px;
+          right: -6px;
+          width: 22px;
+          height: 22px;
+          background: #3b82f6;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 10px;
+          box-shadow: 0 2px 6px rgba(59,130,246,0.3);
+        }
+
+        .member-card-avatar {
+          width: 48px;
+          height: 48px;
+          border-radius: 14px;
+          background: linear-gradient(135deg, #667eea, #764ba2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+          font-weight: 600;
+          color: white;
+          flex-shrink: 0;
+        }
+
+        .member-card-info {
+          flex: 1;
+        }
+
+        .member-card-name {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 8px;
+        }
+
+        .member-card-name h3 {
+          font-size: 15px;
+          font-weight: 600;
+          color: #0f172a;
+        }
+
+        .member-card-status {
+          padding: 3px 10px;
+          border-radius: 20px;
+          font-size: 10px;
+          font-weight: 600;
+        }
+
+        .member-card-status.paid {
+          background: #dcfce7;
+          color: #10b981;
+        }
+
+        .member-card-status.unpaid {
+          background: #fee2e2;
+          color: #ef4444;
+        }
+
+        .member-card-details {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          margin-bottom: 10px;
+        }
+
+        .member-card-details span {
+          font-size: 11px;
+          color: #64748b;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .member-card-details span i {
+          font-size: 10px;
+          color: #94a3b8;
+        }
+
+        .member-card-actions {
+          display: flex;
+          gap: 8px;
+        }
+
+        .member-action {
+          width: 32px;
+          height: 32px;
+          border-radius: 10px;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+        }
+
+        .member-action.remind {
+          background: #e0f2fe;
+          color: #0284c7;
+        }
+
+        .member-action.remind:hover {
+          background: #bae6fd;
+        }
+
+        .member-action.edit {
+          background: #f1f5f9;
+          color: #475569;
+        }
+
+        .member-action.edit:hover {
+          background: #e2e8f0;
+        }
+
+        .member-action.delete {
+          background: #fee2e2;
+          color: #dc2626;
+        }
+
+        .member-action.delete:hover {
+          background: #fecaca;
+        }
+
+        /* Bulk Bar */
+        .member-bulk-bar {
+          position: fixed;
+          bottom: 20px;
+          left: 16px;
+          right: 16px;
+          background: #1e293b;
+          border-radius: 60px;
+          padding: 10px 20px;
+          display: none;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 10px;
+          z-index: 200;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+
+        .member-bulk-bar.show {
+          display: flex;
+        }
+
+        .member-bulk-count {
+          background: rgba(255,255,255,0.15);
+          padding: 5px 12px;
+          border-radius: 40px;
+          font-size: 12px;
+          font-weight: 500;
+          color: white;
+        }
+
+        .member-bulk-buttons {
+          display: flex;
+          gap: 8px;
+        }
+
+        .member-bulk-remind,
+        .member-bulk-delete,
+        .member-bulk-close {
+          padding: 6px 14px;
+          border-radius: 40px;
+          border: none;
+          font-size: 12px;
+          font-weight: 500;
+          cursor: pointer;
+        }
+
+        .member-bulk-remind {
+          background: #3b82f6;
+          color: white;
+        }
+
+        .member-bulk-delete {
+          background: #ef4444;
+          color: white;
+        }
+
+        .member-bulk-close {
+          background: #475569;
+          color: white;
+        }
+
+        /* Modal */
+        .member-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.5);
+          backdrop-filter: blur(4px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+        }
+
+        .member-modal {
+          background: white;
+          border-radius: 24px;
+          width: 90%;
+          max-width: 500px;
+          max-height: 85vh;
+          overflow: hidden;
+        }
+
+        .member-modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 18px 20px;
+          border-bottom: 1px solid #eef2f8;
+        }
+
+        .member-modal-header h2 {
+          font-size: 18px;
+          font-weight: 600;
+        }
+
+        .member-modal-close {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          border: none;
+          background: #f1f5f9;
+          cursor: pointer;
+        }
+
+        .member-modal-body {
+          padding: 20px;
+          overflow-y: auto;
+        }
+
+        .member-form-group {
+          margin-bottom: 16px;
+        }
+
+        .member-form-group label {
+          display: block;
+          font-size: 12px;
+          font-weight: 500;
+          margin-bottom: 6px;
+          color: #334155;
+        }
+
+        .member-form-group input,
+        .member-form-group select {
+          width: 100%;
+          padding: 10px 12px;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          font-size: 13px;
+          font-family: inherit;
+        }
+
+        .member-form-group input:focus,
+        .member-form-group select:focus {
+          outline: none;
+          border-color: #3b82f6;
+        }
+
+        .member-form-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+
+        .member-form-divider {
+          margin: 16px 0;
+          padding-top: 12px;
+          border-top: 1px solid #eef2f8;
+        }
+
+        .member-reset-password {
+          width: 100%;
+          padding: 10px;
+          border-radius: 10px;
+          background: #fef3c7;
+          color: #b45309;
+          border: none;
+          font-weight: 500;
+          cursor: pointer;
+        }
+
+        .member-modal-actions {
+          display: flex;
+          gap: 12px;
+          margin-top: 20px;
+        }
+
+        .member-modal-actions button {
+          flex: 1;
+          padding: 10px;
+          border-radius: 10px;
+          font-weight: 500;
+          cursor: pointer;
+          border: none;
+        }
+
+        .member-btn-cancel {
+          background: #f1f5f9;
+          color: #475569;
+        }
+
+        .member-btn-save {
+          background: #10b981;
+          color: white;
+        }
+
+        /* Confirm Dialog */
+        .member-confirm-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.5);
+          backdrop-filter: blur(4px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1100;
+        }
+
+        .member-confirm-dialog {
+          background: white;
+          border-radius: 24px;
+          padding: 24px;
+          width: 90%;
+          max-width: 320px;
+          text-align: center;
+        }
+
+        .member-confirm-icon i {
+          font-size: 48px;
+          color: #ef4444;
+          margin-bottom: 12px;
+        }
+
+        .member-confirm-dialog h3 {
+          font-size: 18px;
+          margin-bottom: 8px;
+        }
+
+        .member-confirm-dialog p {
+          font-size: 13px;
+          color: #64748b;
+          margin-bottom: 20px;
+        }
+
+        .member-confirm-actions {
+          display: flex;
+          gap: 10px;
+        }
+
+        .member-confirm-actions button {
+          flex: 1;
+          padding: 10px;
+          border-radius: 30px;
+          font-weight: 500;
+          cursor: pointer;
+          border: none;
+        }
+
+        .member-confirm-cancel {
+          background: #f1f5f9;
+          color: #475569;
+        }
+
+        .member-confirm-delete {
+          background: #ef4444;
+          color: white;
+        }
+
+        /* Toast */
+        .member-toast {
+          position: fixed;
+          bottom: 90px;
+          left: 16px;
+          right: 16px;
+          background: #1e293b;
+          color: white;
+          text-align: center;
+          padding: 12px;
+          border-radius: 60px;
+          z-index: 1200;
+          font-size: 13px;
+          animation: memberToastIn 0.3s ease;
+        }
+
+        @keyframes memberToastIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        /* Empty State */
+        .member-empty {
+          text-align: center;
+          padding: 60px 20px;
+          color: #94a3b8;
+          background: white;
+          border-radius: 20px;
+        }
+
+        .member-empty i {
+          font-size: 48px;
+          margin-bottom: 12px;
+        }
+
+        .member-empty h3 {
+          font-size: 16px;
+          margin-bottom: 6px;
+          color: #64748b;
+        }
+
+        /* Skeletons */
+        .member-stat-skeleton {
+          background: white;
+          border-radius: 16px;
+          padding: 14px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          animation: memberPulse 1.5s infinite;
+        }
+
+        .member-stat-skeleton-icon {
+          width: 48px;
+          height: 48px;
+          background: #e2e8f0;
+          border-radius: 14px;
+        }
+
+        .member-stat-skeleton-text {
+          width: 80px;
+          height: 20px;
+          background: #e2e8f0;
+          border-radius: 8px;
+        }
+
+        .member-filter-skeleton {
+          height: 44px;
+          background: white;
+          border-radius: 12px;
+          margin-bottom: 20px;
+          animation: memberPulse 1.5s infinite;
+        }
+
+        .member-card-skeleton {
+          background: white;
+          border-radius: 14px;
+          padding: 14px;
+          display: flex;
+          gap: 14px;
+          margin-bottom: 10px;
+          animation: memberPulse 1.5s infinite;
+        }
+
+        .member-card-skeleton-avatar {
+          width: 48px;
+          height: 48px;
+          background: #e2e8f0;
+          border-radius: 14px;
+        }
+
+        .member-card-skeleton-content {
+          flex: 1;
+        }
+
+        .member-card-skeleton-line {
+          height: 14px;
+          background: #e2e8f0;
+          border-radius: 6px;
+          margin-bottom: 8px;
+        }
+
+        .member-card-skeleton-line.short {
+          width: 60%;
+        }
+
+        @keyframes memberPulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.6; }
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+          .member-container {
+            padding: 16px 12px 100px;
+          }
+
+          .member-card-details {
+            flex-direction: column;
+            gap: 6px;
+          }
+
+          .member-bulk-bar {
+            flex-direction: column;
+            border-radius: 24px;
+            text-align: center;
+          }
+
+          .member-bulk-buttons {
+            width: 100%;
+            justify-content: center;
+          }
+        }
       `}</style>
     </div>
   );
