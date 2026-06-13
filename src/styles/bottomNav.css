@@ -3380,3 +3380,477 @@ select:focus-visible {
     justify-content: center;
   }
 }
+/* ============================================
+   REMINDERS PAGE - ADDITIONAL STYLES
+   ============================================ */
+
+/* Stat Card Clickable */
+.stat-card.clickable {
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.stat-card.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-note {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  display: block;
+}
+
+/* Stat Icons for Reminders */
+.stat-icon.unpaid-icon {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.stat-icon.telegram-icon {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+.stat-icon.no-telegram-icon {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.stat-icon.month-icon {
+  background: #d1fae5;
+  color: #10b981;
+}
+
+/* Schedule Card */
+.schedule-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border-medium);
+  box-shadow: var(--shadow-xs);
+}
+
+.schedule-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.schedule-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.schedule-title i {
+  font-size: 28px;
+  color: var(--primary);
+}
+
+.schedule-title h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.schedule-title p {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 28px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--border-dark);
+  transition: var(--transition-base);
+  border-radius: 34px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: var(--transition-base);
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: var(--primary);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(24px);
+}
+
+/* Schedule Config */
+.schedule-config {
+  display: none;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-medium);
+}
+
+.schedule-config.show {
+  display: grid;
+}
+
+.config-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.config-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.config-group select {
+  padding: 10px 12px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--bg-primary);
+  cursor: pointer;
+}
+
+.config-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Section Header */
+.section-header {
+  margin-bottom: 16px;
+}
+
+.section-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Templates Grid */
+.templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.template-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  cursor: pointer;
+  transition: var(--transition-base);
+  border: 2px solid var(--border-medium);
+}
+
+.template-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.template-card.active {
+  border-color: var(--primary);
+  background: linear-gradient(135deg, #ffffff, #eff6ff);
+}
+
+.template-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.template-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.template-badge {
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.template-badge.badge-1 {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+.template-badge.badge-2 {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.template-badge.badge-3 {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.template-preview {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+/* Action Buttons Group */
+.action-buttons-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+
+/* Logs Section */
+.logs-section {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-medium);
+  overflow: hidden;
+}
+
+.logs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-medium);
+}
+
+.logs-header h3 {
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.last-run-info {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.logs-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.log-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-light);
+  transition: var(--transition-base);
+}
+
+.log-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.log-info {
+  flex: 1;
+}
+
+.log-info strong {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.log-month {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-left: 8px;
+}
+
+.log-date {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.log-status {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.log-status.success {
+  color: var(--success);
+}
+
+.log-status.failed {
+  color: var(--danger);
+}
+
+/* Test Modal Input */
+.test-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+  font-family: inherit;
+  margin-bottom: 20px;
+}
+
+.test-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Skeleton Styles for Reminders */
+.schedule-skeleton {
+  height: 180px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  margin-bottom: 24px;
+  animation: pulse 1.5s ease-in-out infinite;
+  border: 1px solid var(--border-medium);
+}
+
+.templates-skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.template-skeleton {
+  height: 140px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  animation: pulse 1.5s ease-in-out infinite;
+  border: 1px solid var(--border-medium);
+}
+
+.action-buttons-skeleton {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+
+.btn-skeleton {
+  height: 42px;
+  width: 140px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-full);
+  animation: pulse 1.5s ease-in-out infinite;
+  border: 1px solid var(--border-medium);
+}
+
+.logs-skeleton {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1px solid var(--border-medium);
+}
+
+.logs-header-skeleton {
+  height: 56px;
+  background: var(--bg-tertiary);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.log-item-skeleton {
+  height: 60px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-light);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .schedule-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .schedule-config {
+    grid-template-columns: 1fr;
+  }
+  
+  .templates-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-buttons-group {
+    justify-content: center;
+  }
+  
+  .logs-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  
+  .log-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .log-status {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .schedule-title {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .action-buttons-group button {
+    flex: 1;
+    justify-content: center;
+  }
+  
+  .btn-skeleton {
+    width: 100%;
+  }
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { db } from '../config/firebase';
 import { 
   collection, getDocs
@@ -19,6 +19,7 @@ const Reminders = () => {
   const [showTestModal, setShowTestModal] = useState(false);
   const [testTelegram, setTestTelegram] = useState("");
   const [autoScheduleInterval, setAutoScheduleInterval] = useState(null);
+  const dataLoadedRef = useRef(false);
 
   const BOT_TOKEN = "8784743959:AAEMA8yJqQYVcV3nOkdhyLQKgc5r6OX3FEI";
 
@@ -55,6 +56,49 @@ const Reminders = () => {
     };
   }, []);
 
+  const showToast = useCallback((message, isError = false) => {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<i class="fa ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }, []);
+
+  // Load data function - stable reference
+  const loadData = useCallback(async () => {
+    // Prevent multiple loads
+    if (dataLoadedRef.current && allMembers.length > 0) return;
+    
+    try {
+      const membersSnapshot = await getDocs(collection(db, "members"));
+      const membersList = membersSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setAllMembers(membersList);
+
+      const paymentsSnapshot = await getDocs(collection(db, "payments"));
+      const paymentsList = paymentsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setAllPayments(paymentsList);
+      dataLoadedRef.current = true;
+    } catch (error) {
+      console.error('Error loading data:', error);
+      showToast("Error loading data", true);
+    } finally {
+      setLoading(false);
+    }
+  }, [showToast, allMembers.length]);
+
+  // Load logs - stable reference
+  const loadLogs = useCallback(() => {
+    const logs = JSON.parse(localStorage.getItem("reminder_logs") || "[]");
+    setReminderLogs(logs);
+  }, []);
+
+  // Calculate paid status - depends on allPayments
   const calculatePaidStatus = useCallback(() => {
     const currentMonth = getCurrentMonthInfo();
     const paidSet = new Set();
@@ -73,42 +117,6 @@ const Reminders = () => {
     });
     return paidSet;
   }, [allPayments, getCurrentMonthInfo]);
-
-  const showToast = useCallback((message, isError = false) => {
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerHTML = `<i class="fa ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-  }, []);
-
-  const loadData = useCallback(async () => {
-    try {
-      const membersSnapshot = await getDocs(collection(db, "members"));
-      const membersList = membersSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setAllMembers(membersList);
-
-      const paymentsSnapshot = await getDocs(collection(db, "payments"));
-      const paymentsList = paymentsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setAllPayments(paymentsList);
-    } catch (error) {
-      console.error('Error loading data:', error);
-      showToast("Error loading data", true);
-    } finally {
-      setLoading(false);
-    }
-  }, [showToast]);
-
-  const loadLogs = useCallback(() => {
-    const logs = JSON.parse(localStorage.getItem("reminder_logs") || "[]");
-    setReminderLogs(logs);
-  }, []);
 
   const getReminderMessage = useCallback((member, reminderCount = 1) => {
     let template = templates[currentTemplate];
@@ -272,14 +280,19 @@ const Reminders = () => {
     }
   }, [autoScheduleEnabled, scheduleConfig, startAutoScheduler, stopAutoScheduler, showToast]);
 
+  // Run once on mount
   useEffect(() => {
-    loadData();
-    loadLogs();
-    loadScheduleSettings();
+    const init = async () => {
+      await loadData();
+      loadLogs();
+      loadScheduleSettings();
+    };
+    init();
+    
     return () => {
       if (autoScheduleInterval) clearInterval(autoScheduleInterval);
     };
-  }, [loadData, loadLogs, loadScheduleSettings]);
+  }, []); // Empty dependency array - runs only once on mount
 
   const sendTestReminder = async () => {
     if (!testTelegram) {
@@ -334,647 +347,276 @@ const Reminders = () => {
   const withoutTelegram = unpaidMembers.length - withTelegram.length;
   const currentMonth = getCurrentMonthInfo();
 
+  // Loading Skeleton
   if (loading) {
     return (
-      <div className="reminders-page">
-        <div className="app-container">
-          <div className="loading">Loading reminder scheduler...</div>
+      <div className="app-container">
+        <div className="payments-header">
+          <div className="header-title">
+            <h1><i className="fa fa-bell"></i> Smart Reminder Scheduler</h1>
+            <p>Automatically send payment reminders to unpaid members every month</p>
+          </div>
+        </div>
+        
+        {/* Stats Skeleton */}
+        <div className="stats-row">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="stat-skeleton">
+              <div className="stat-skeleton-icon"></div>
+              <div className="stat-skeleton-text"></div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Schedule Card Skeleton */}
+        <div className="schedule-skeleton"></div>
+        
+        {/* Templates Grid Skeleton */}
+        <div className="templates-skeleton">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="template-skeleton"></div>
+          ))}
+        </div>
+        
+        {/* Action Buttons Skeleton */}
+        <div className="action-buttons-skeleton">
+          <div className="btn-skeleton"></div>
+          <div className="btn-skeleton"></div>
+          <div className="btn-skeleton"></div>
+          <div className="btn-skeleton"></div>
+        </div>
+        
+        {/* Logs Skeleton */}
+        <div className="logs-skeleton">
+          <div className="logs-header-skeleton"></div>
+          <div className="log-item-skeleton"></div>
+          <div className="log-item-skeleton"></div>
+          <div className="log-item-skeleton"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="reminders-page">
-      <div className="app-container">
-        <div className="reminder-header">
-          <div className="header-title">
-            <h1><i className="fa fa-bell"></i> Smart Reminder Scheduler</h1>
-            <p>Automatically send payment reminders to unpaid members every month</p>
-          </div>
+    <div className="app-container">
+      <div className="payments-header">
+        <div className="header-title">
+          <h1><i className="fa fa-bell"></i> Smart Reminder Scheduler</h1>
+          <p>Automatically send payment reminders to unpaid members every month</p>
         </div>
+      </div>
 
-        {/* Stats Row */}
-        <div className="stats-row">
-          <div className="stat-card" onClick={sendAllReminders}>
-            <div className="stat-icon" style={{ background: '#fef3c7' }}>
-              <i className="fa fa-users" style={{ color: '#f59e0b' }}></i>
-            </div>
+      {/* Stats Row */}
+      <div className="stats-row">
+        <div className="stat-card clickable" onClick={sendAllReminders}>
+          <div className="stat-icon unpaid-icon">
+            <i className="fa fa-users"></i>
+          </div>
+          <div className="stat-info">
             <h3>{unpaidMembers.length}</h3>
             <p>Unpaid Members</p>
-            <div className="stat-note">Click to send reminders</div>
+            <small className="stat-note">Click to send reminders</small>
           </div>
-          <div className="stat-card">
-            <div className="stat-icon" style={{ background: '#dbeafe' }}>
-              <i className="fab fa-telegram" style={{ color: '#3b82f6' }}></i>
-            </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon telegram-icon">
+            <i className="fab fa-telegram"></i>
+          </div>
+          <div className="stat-info">
             <h3>{withTelegram.length}</h3>
             <p>Will Receive Reminders</p>
           </div>
-          <div className="stat-card">
-            <div className="stat-icon" style={{ background: '#fee2e2' }}>
-              <i className="fa fa-ban" style={{ color: '#ef4444' }}></i>
-            </div>
-            <h3>{withoutTelegram}</h3>
-            <p>No Telegram (Cannot reach)</p>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon no-telegram-icon">
+            <i className="fa fa-ban"></i>
           </div>
-          <div className="stat-card">
-            <div className="stat-icon" style={{ background: '#d1fae5' }}>
-              <i className="fa fa-calendar" style={{ color: '#10b981' }}></i>
-            </div>
-            <h3>{currentMonth.name}</h3>
+          <div className="stat-info">
+            <h3>{withoutTelegram}</h3>
+            <p>No Telegram</p>
+            <small>Cannot reach</small>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon month-icon">
+            <i className="fa fa-calendar"></i>
+          </div>
+          <div className="stat-info">
+            <h3>{currentMonth.shortName}</h3>
             <p>Current Month</p>
           </div>
         </div>
+      </div>
 
-        {/* Auto-Schedule Card */}
-        <div className="schedule-card">
-          <div className="schedule-header">
-            <div className="schedule-title">
-              <i className="fa fa-calendar-check"></i>
-              <div>
-                <h2>Automated Monthly Reminders</h2>
-                <p>Schedule reminders to be sent automatically every month</p>
-              </div>
-            </div>
-            <label className="toggle-switch">
-              <input 
-                type="checkbox" 
-                checked={autoScheduleEnabled}
-                onChange={(e) => {
-                  setAutoScheduleEnabled(e.target.checked);
-                  setTimeout(saveScheduleSettings, 100);
-                }}
-              />
-              <span className="toggle-slider"></span>
-            </label>
-          </div>
-          
-          <div className={`schedule-config ${autoScheduleEnabled ? 'show' : ''}`}>
-            <div className="config-group">
-              <label><i className="fa fa-calendar"></i> Send Day of Month</label>
-              <select 
-                value={scheduleConfig.day}
-                onChange={(e) => {
-                  setScheduleConfig({...scheduleConfig, day: parseInt(e.target.value)});
-                  setTimeout(saveScheduleSettings, 100);
-                }}
-              >
-                <option value="1">1st - First day of month</option>
-                <option value="5">5th - Early reminder</option>
-                <option value="10">10th - Standard reminder</option>
-                <option value="15">15th - Mid-month reminder</option>
-                <option value="20">20th - Urgent reminder</option>
-                <option value="25">25th - Final warning</option>
-              </select>
-            </div>
-            <div className="config-group">
-              <label><i className="fa fa-clock"></i> Reminder Time</label>
-              <select 
-                value={scheduleConfig.time}
-                onChange={(e) => {
-                  setScheduleConfig({...scheduleConfig, time: e.target.value});
-                  setTimeout(saveScheduleSettings, 100);
-                }}
-              >
-                <option value="09:00">09:00 AM - Morning</option>
-                <option value="12:00">12:00 PM - Noon</option>
-                <option value="15:00">03:00 PM - Afternoon</option>
-                <option value="18:00">06:00 PM - Evening</option>
-                <option value="20:00">08:00 PM - Night</option>
-              </select>
-            </div>
-            <div className="config-group">
-              <label><i className="fa fa-repeat"></i> Reminder Frequency</label>
-              <select 
-                value={scheduleConfig.frequency}
-                onChange={(e) => {
-                  setScheduleConfig({...scheduleConfig, frequency: e.target.value});
-                  setTimeout(saveScheduleSettings, 100);
-                }}
-              >
-                <option value="once">Once per month (first reminder only)</option>
-                <option value="escalating">Escalating (1st, 2nd, 3rd reminder)</option>
-                <option value="weekly">Weekly until paid</option>
-              </select>
+      {/* Auto-Schedule Card */}
+      <div className="schedule-card">
+        <div className="schedule-header">
+          <div className="schedule-title">
+            <i className="fa fa-calendar-check"></i>
+            <div>
+              <h2>Automated Monthly Reminders</h2>
+              <p>Schedule reminders to be sent automatically every month</p>
             </div>
           </div>
+          <label className="toggle-switch">
+            <input 
+              type="checkbox" 
+              checked={autoScheduleEnabled}
+              onChange={(e) => {
+                setAutoScheduleEnabled(e.target.checked);
+                setTimeout(saveScheduleSettings, 100);
+              }}
+            />
+            <span className="toggle-slider"></span>
+          </label>
         </div>
-
-        {/* Reminder Templates */}
-        <h3 style={{ marginBottom: '16px' }}><i className="fa fa-file-alt"></i> Reminder Templates</h3>
-        <div className="templates-grid">
-          {Object.entries(templates).map(([id, tpl]) => (
-            <div 
-              key={id}
-              className={`template-card ${currentTemplate === parseInt(id) ? 'active' : ''}`}
-              onClick={() => setCurrentTemplate(parseInt(id))}
+        
+        <div className={`schedule-config ${autoScheduleEnabled ? 'show' : ''}`}>
+          <div className="config-group">
+            <label><i className="fa fa-calendar"></i> Send Day of Month</label>
+            <select 
+              value={scheduleConfig.day}
+              onChange={(e) => {
+                setScheduleConfig({...scheduleConfig, day: parseInt(e.target.value)});
+                setTimeout(saveScheduleSettings, 100);
+              }}
             >
-              <div className="template-header">
-                <span className="template-name">{tpl.name}</span>
-                <span className={`template-badge ${tpl.badgeClass}`}>{tpl.badge}</span>
-              </div>
-              <div className="template-preview">{tpl.message.substring(0, 100)}...</div>
+              <option value="1">1st - First day of month</option>
+              <option value="5">5th - Early reminder</option>
+              <option value="10">10th - Standard reminder</option>
+              <option value="15">15th - Mid-month reminder</option>
+              <option value="20">20th - Urgent reminder</option>
+              <option value="25">25th - Final warning</option>
+            </select>
+          </div>
+          <div className="config-group">
+            <label><i className="fa fa-clock"></i> Reminder Time</label>
+            <select 
+              value={scheduleConfig.time}
+              onChange={(e) => {
+                setScheduleConfig({...scheduleConfig, time: e.target.value});
+                setTimeout(saveScheduleSettings, 100);
+              }}
+            >
+              <option value="09:00">09:00 AM - Morning</option>
+              <option value="12:00">12:00 PM - Noon</option>
+              <option value="15:00">03:00 PM - Afternoon</option>
+              <option value="18:00">06:00 PM - Evening</option>
+              <option value="20:00">08:00 PM - Night</option>
+            </select>
+          </div>
+          <div className="config-group">
+            <label><i className="fa fa-repeat"></i> Reminder Frequency</label>
+            <select 
+              value={scheduleConfig.frequency}
+              onChange={(e) => {
+                setScheduleConfig({...scheduleConfig, frequency: e.target.value});
+                setTimeout(saveScheduleSettings, 100);
+              }}
+            >
+              <option value="once">Once per month (first reminder only)</option>
+              <option value="escalating">Escalating (1st, 2nd, 3rd reminder)</option>
+              <option value="weekly">Weekly until paid</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Reminder Templates */}
+      <div className="section-header">
+        <h3><i className="fa fa-file-alt"></i> Reminder Templates</h3>
+      </div>
+      <div className="templates-grid">
+        {Object.entries(templates).map(([id, tpl]) => (
+          <div 
+            key={id}
+            className={`template-card ${currentTemplate === parseInt(id) ? 'active' : ''}`}
+            onClick={() => setCurrentTemplate(parseInt(id))}
+          >
+            <div className="template-header">
+              <span className="template-name">{tpl.name}</span>
+              <span className={`template-badge ${tpl.badgeClass}`}>{tpl.badge}</span>
             </div>
-          ))}
-        </div>
-
-        {/* Action Buttons */}
-        <div className="action-buttons">
-          <button className="btn-primary" onClick={sendAllReminders}>
-            <i className="fa fa-paper-plane"></i> Send Reminders Now
-          </button>
-          <button className="btn-secondary" onClick={() => setShowTestModal(true)}>
-            <i className="fa fa-flask"></i> Test Reminder
-          </button>
-          <button className="btn-secondary" onClick={previewMessage}>
-            <i className="fa fa-eye"></i> Preview Message
-          </button>
-          <button className="btn-danger" onClick={clearLogs}>
-            <i className="fa fa-trash"></i> Clear Logs
-          </button>
-        </div>
-
-        {/* Recent Activity Logs */}
-        <div className="logs-section">
-          <div className="logs-header">
-            <h3><i className="fa fa-history"></i> Reminder History</h3>
-            <span className="last-run-info">
-              {localStorage.getItem("reminder_schedule") && JSON.parse(localStorage.getItem("reminder_schedule")).lastRun && 
-                `Last auto-run: ${new Date(JSON.parse(localStorage.getItem("reminder_schedule")).lastRun).toLocaleString()}`
-              }
-            </span>
+            <div className="template-preview">{tpl.message.substring(0, 100)}...</div>
           </div>
-          <div className="logs-list">
-            {reminderLogs.length === 0 ? (
-              <div className="log-item">No reminders sent yet</div>
-            ) : (
-              reminderLogs.slice(0, 50).map((log, index) => (
-                <div key={index} className="log-item">
-                  <div>
-                    <strong>{log.member}</strong> - {log.month}
-                    <div style={{ fontSize: '11px', color: '#64748b' }}>{new Date(log.timestamp).toLocaleString()}</div>
-                  </div>
-                  <div className={`log-${log.status}`}>
-                    {log.status === "success" ? "✅ Sent" : "❌ Failed"}
-                    {log.reason && ` (${log.reason})`}
-                  </div>
+        ))}
+      </div>
+
+      {/* Action Buttons */}
+      <div className="action-buttons-group">
+        <button className="btn-primary" onClick={sendAllReminders}>
+          <i className="fa fa-paper-plane"></i> Send Reminders Now
+        </button>
+        <button className="btn-secondary" onClick={() => setShowTestModal(true)}>
+          <i className="fa fa-flask"></i> Test Reminder
+        </button>
+        <button className="btn-secondary" onClick={previewMessage}>
+          <i className="fa fa-eye"></i> Preview Message
+        </button>
+        <button className="btn-danger" onClick={clearLogs}>
+          <i className="fa fa-trash"></i> Clear Logs
+        </button>
+      </div>
+
+      {/* Recent Activity Logs */}
+      <div className="logs-section">
+        <div className="logs-header">
+          <h3><i className="fa fa-history"></i> Reminder History</h3>
+          <span className="last-run-info">
+            {localStorage.getItem("reminder_schedule") && JSON.parse(localStorage.getItem("reminder_schedule")).lastRun && 
+              `Last auto-run: ${new Date(JSON.parse(localStorage.getItem("reminder_schedule")).lastRun).toLocaleString()}`
+            }
+          </span>
+        </div>
+        <div className="logs-list">
+          {reminderLogs.length === 0 ? (
+            <div className="empty-state">
+              <i className="fa fa-bell-slash"></i>
+              <p>No reminders sent yet</p>
+            </div>
+          ) : (
+            reminderLogs.slice(0, 50).map((log, index) => (
+              <div key={index} className="log-item">
+                <div className="log-info">
+                  <strong>{log.member}</strong>
+                  <span className="log-month">{log.month}</span>
+                  <div className="log-date">{new Date(log.timestamp).toLocaleString()}</div>
                 </div>
-              ))
-            )}
-          </div>
+                <div className={`log-status ${log.status}`}>
+                  {log.status === "success" ? "✅ Sent" : "❌ Failed"}
+                  {log.reason && ` (${log.reason})`}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
       {/* Test Modal */}
       <div className={`modal-overlay ${showTestModal ? 'show' : ''}`} onClick={() => setShowTestModal(false)}>
-        <div className="test-modal" onClick={e => e.stopPropagation()}>
-          <h3 style={{ marginBottom: '16px' }}>Test Reminder</h3>
-          <p style={{ marginBottom: '16px' }}>Send a test reminder to:</p>
-          <input 
-            type="text" 
-            placeholder="Telegram username (e.g., @username)" 
-            value={testTelegram}
-            onChange={(e) => setTestTelegram(e.target.value)}
-            style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '16px' }}
-          />
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button className="btn-secondary" onClick={() => setShowTestModal(false)} style={{ flex: 1 }}>Cancel</button>
-            <button className="btn-primary" onClick={sendTestReminder} style={{ flex: 1 }}>Send Test</button>
+        <div className="history-modal" onClick={e => e.stopPropagation()}>
+          <div className="modal-header">
+            <h2>Test Reminder</h2>
+            <button className="close-modal" onClick={() => setShowTestModal(false)}>
+              <i className="fa fa-times"></i>
+            </button>
+          </div>
+          <div className="modal-body">
+            <p>Send a test reminder to:</p>
+            <input 
+              type="text" 
+              placeholder="Telegram username (e.g., @username)" 
+              value={testTelegram}
+              onChange={(e) => setTestTelegram(e.target.value)}
+              className="test-input"
+            />
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setShowTestModal(false)}>Cancel</button>
+              <button className="btn-save" onClick={sendTestReminder}>Send Test</button>
+            </div>
           </div>
         </div>
       </div>
-
-      <style>{`
-        .reminders-page {
-          min-height: 100vh;
-          background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
-        }
-
-        .app-container {
-          max-width: 1400px;
-          margin: 0 auto;
-          padding: 20px 24px 100px;
-        }
-
-        .reminder-header {
-          margin-bottom: 32px;
-        }
-
-        .header-title h1 {
-          font-size: 28px;
-          font-weight: 700;
-          background: linear-gradient(135deg, #0f172a, #8b5cf6);
-          background-clip: text;
-          -webkit-background-clip: text;
-          color: transparent;
-        }
-
-        .header-title p {
-          color: #64748b;
-          margin-top: 4px;
-          font-size: 14px;
-        }
-
-        .stats-row {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 20px;
-          margin-bottom: 32px;
-        }
-
-        .stat-card {
-          background: white;
-          border-radius: 24px;
-          padding: 20px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-          transition: transform 0.2s;
-          border: 1px solid rgba(0,0,0,0.05);
-          cursor: pointer;
-        }
-
-        .stat-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 20px 25px -12px rgba(0,0,0,0.1);
-        }
-
-        .stat-icon {
-          width: 48px;
-          height: 48px;
-          border-radius: 16px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 24px;
-          margin-bottom: 16px;
-        }
-
-        .stat-card h3 {
-          font-size: 28px;
-          font-weight: 700;
-          margin-bottom: 4px;
-        }
-
-        .stat-card p {
-          color: #64748b;
-          font-size: 13px;
-        }
-
-        .stat-note {
-          font-size: 11px;
-          color: #10b981;
-          margin-top: 8px;
-        }
-
-        .schedule-card {
-          background: white;
-          border-radius: 24px;
-          padding: 24px;
-          margin-bottom: 24px;
-          border: 1px solid #eef2f8;
-          background: linear-gradient(135deg, #fff, #f8fafc);
-        }
-
-        .schedule-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 16px;
-        }
-
-        .schedule-title {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .schedule-title i {
-          font-size: 28px;
-          color: #8b5cf6;
-        }
-
-        .schedule-title h2 {
-          font-size: 20px;
-          font-weight: 700;
-        }
-
-        .schedule-title p {
-          color: #64748b;
-          font-size: 13px;
-          margin-top: 4px;
-        }
-
-        .toggle-switch {
-          position: relative;
-          display: inline-block;
-          width: 60px;
-          height: 32px;
-        }
-
-        .toggle-switch input {
-          opacity: 0;
-          width: 0;
-          height: 0;
-        }
-
-        .toggle-slider {
-          position: absolute;
-          cursor: pointer;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-color: #cbd5e1;
-          transition: 0.3s;
-          border-radius: 34px;
-        }
-
-        .toggle-slider:before {
-          position: absolute;
-          content: "";
-          height: 24px;
-          width: 24px;
-          left: 4px;
-          bottom: 4px;
-          background-color: white;
-          transition: 0.3s;
-          border-radius: 50%;
-        }
-
-        input:checked + .toggle-slider {
-          background-color: #8b5cf6;
-        }
-
-        input:checked + .toggle-slider:before {
-          transform: translateX(28px);
-        }
-
-        .schedule-config {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 20px;
-          margin-top: 20px;
-          padding-top: 20px;
-          border-top: 1px solid #eef2f8;
-          display: none;
-        }
-
-        .schedule-config.show {
-          display: grid;
-        }
-
-        .config-group {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-
-        .config-group label {
-          font-size: 12px;
-          font-weight: 600;
-          color: #64748b;
-          text-transform: uppercase;
-        }
-
-        .config-group select {
-          padding: 10px 14px;
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
-          font-size: 14px;
-          outline: none;
-        }
-
-        .config-group select:focus {
-          border-color: #8b5cf6;
-          box-shadow: 0 0 0 3px rgba(139,92,246,0.1);
-        }
-
-        .templates-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 20px;
-          margin-bottom: 24px;
-        }
-
-        .template-card {
-          background: white;
-          border-radius: 20px;
-          padding: 20px;
-          border: 1px solid #eef2f8;
-          transition: all 0.2s;
-          cursor: pointer;
-        }
-
-        .template-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-          border-color: #8b5cf6;
-        }
-
-        .template-card.active {
-          border: 2px solid #8b5cf6;
-          background: #faf5ff;
-        }
-
-        .template-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 12px;
-        }
-
-        .template-name {
-          font-weight: 700;
-          font-size: 16px;
-        }
-
-        .template-badge {
-          padding: 4px 10px;
-          border-radius: 20px;
-          font-size: 10px;
-          font-weight: 600;
-        }
-
-        .badge-1 { background: #fef3c7; color: #d97706; }
-        .badge-2 { background: #fee2e2; color: #dc2626; }
-        .badge-3 { background: #dbeafe; color: #2563eb; }
-
-        .template-preview {
-          font-size: 13px;
-          color: #64748b;
-          line-height: 1.5;
-          margin-top: 12px;
-          padding: 12px;
-          background: #f8fafc;
-          border-radius: 12px;
-        }
-
-        .action-buttons {
-          display: flex;
-          gap: 16px;
-          flex-wrap: wrap;
-          margin-bottom: 24px;
-        }
-
-        .btn-primary {
-          background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-          border: none;
-          padding: 14px 28px;
-          border-radius: 40px;
-          color: white;
-          font-weight: 600;
-          font-size: 14px;
-          cursor: pointer;
-          transition: all 0.2s;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .btn-primary:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 10px 20px -8px rgba(139,92,246,0.4);
-        }
-
-        .btn-secondary {
-          background: white;
-          border: 1px solid #e2e8f0;
-          padding: 14px 28px;
-          border-radius: 40px;
-          color: #475569;
-          font-weight: 600;
-          font-size: 14px;
-          cursor: pointer;
-          transition: all 0.2s;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .btn-secondary:hover {
-          background: #f8fafc;
-          border-color: #8b5cf6;
-        }
-
-        .btn-danger {
-          background: #fee2e2;
-          border: none;
-          padding: 14px 28px;
-          border-radius: 40px;
-          color: #dc2626;
-          font-weight: 600;
-          font-size: 14px;
-          cursor: pointer;
-          transition: all 0.2s;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .logs-section {
-          background: white;
-          border-radius: 24px;
-          padding: 24px;
-          margin-top: 24px;
-        }
-
-        .logs-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-          flex-wrap: wrap;
-          gap: 12px;
-        }
-
-        .last-run-info {
-          font-size: 12px;
-          color: #64748b;
-        }
-
-        .logs-list {
-          max-height: 300px;
-          overflow-y: auto;
-        }
-
-        .log-item {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 12px;
-          border-bottom: 1px solid #eef2f8;
-          font-size: 13px;
-        }
-
-        .log-success { color: #10b981; }
-        .log-error { color: #ef4444; }
-        .log-pending { color: #f59e0b; }
-
-        .modal-overlay {
-          position: fixed;
-          inset: 0;
-          background: rgba(0,0,0,0.7);
-          backdrop-filter: blur(8px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 10000;
-          opacity: 0;
-          visibility: hidden;
-          transition: all 0.3s ease;
-        }
-
-        .modal-overlay.show {
-          opacity: 1;
-          visibility: visible;
-        }
-
-        .test-modal {
-          background: white;
-          border-radius: 32px;
-          width: 90%;
-          max-width: 500px;
-          max-height: 80vh;
-          overflow: auto;
-          padding: 24px;
-        }
-
-        .toast {
-          position: fixed;
-          bottom: 100px;
-          left: 20px;
-          right: 20px;
-          background: #1e293b;
-          color: white;
-          text-align: center;
-          padding: 12px;
-          border-radius: 60px;
-          z-index: 10001;
-          animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-          from { transform: translateY(100px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-
-        .loading {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 400px;
-          font-size: 18px;
-          color: #64748b;
-        }
-
-        @media (max-width: 768px) {
-          .app-container { padding: 16px 16px 80px; }
-          .action-buttons { flex-direction: column; }
-          .btn-primary, .btn-secondary, .btn-danger { justify-content: center; }
-          .stats-row { grid-template-columns: repeat(2, 1fr); }
-        }
-      `}</style>
     </div>
   );
 };
