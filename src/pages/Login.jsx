@@ -37,9 +37,11 @@ const Login = () => {
         return;
       }
 
-      // Success - reload to show main app
-      window.location.reload();
+      // Success - NO RELOAD, just let the auth state change
+      setLoading(false);
+      // The App component will detect auth change and redirect automatically
     } catch (error) {
+      console.error("Login error:", error);
       setError("Invalid email or password");
       setLoading(false);
     }
@@ -48,7 +50,6 @@ const Login = () => {
   return (
     <div className="login-screen-light">
       <div className="login-screen-container-light">
-        {/* Logo Section */}
         <div className="login-screen-logo-light">
           <div className="login-screen-logo-circle-light">
             <i className="fa fa-shield-hawk"></i>
@@ -57,7 +58,6 @@ const Login = () => {
           <p className="login-screen-subtitle-light">Payment Management System</p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleLogin} className="login-screen-form-light">
           <div className="login-screen-input-group-light">
             <i className="fa fa-envelope"></i>
@@ -103,7 +103,6 @@ const Login = () => {
           </button>
         </form>
 
-        {/* Footer */}
         <div className="login-screen-footer-light">
           <p>Admin Access Only</p>
           <small>Unauthorized access is prohibited</small>

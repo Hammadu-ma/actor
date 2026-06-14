@@ -963,29 +963,6 @@ body {
 }
 
 /* ============================================
-   ADMIN SHEET - HIGH Z-INDEX
-   ============================================ */
-.admin-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  z-index: var(--z-modal); /* 1500 - Above bottom nav */
-}
-
-.admin-sheet {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-3xl) var(--radius-3xl) 0 0;
-  width: 100%;
-  max-width: 500px;
-  overflow: hidden;
-  animation: sheetSlideUp 0.3s ease;
-}
-
-/* ============================================
    CONFIRM DIALOG - HIGHEST Z-INDEX
    ============================================ */
 .confirm-overlay {
@@ -4295,4 +4272,218 @@ input:checked + .toggle-slider:before {
     padding: 12px;
     font-size: 14px;
   }
+}
+/* ============================================
+   LOADING & VERIFYING STATES - MATCHING EXISTING THEME
+   ============================================ */
+
+/* Loading Container - already in your CSS, just ensure these styles */
+.loading-container {
+  min-height: 100vh;
+  background: linear-gradient(145deg, var(--bg-primary) 0%, var(--bg-tertiary) 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.loading-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 0% 0%, rgba(79, 70, 229, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(6, 182, 212, 0.06) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid var(--border-medium);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+.loading-container p {
+  color: var(--text-tertiary);
+  font-size: 14px;
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* For the verifying access state (used in Members, Payments, Reminders) */
+.loading-container i {
+  font-size: 48px;
+  color: var(--primary);
+  margin-bottom: 16px;
+  display: inline-block;
+  position: relative;
+  z-index: 1;
+}
+
+/* Make sure the verifying container uses the same styles */
+.verifying-container {
+  min-height: 100vh;
+  background: linear-gradient(145deg, var(--bg-primary) 0%, var(--bg-tertiary) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.verifying-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 0% 0%, rgba(79, 70, 229, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(6, 182, 212, 0.06) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+.verifying-container .loading-spinner {
+  margin-bottom: 16px;
+}
+
+.verifying-container p {
+  color: var(--text-tertiary);
+  font-size: 14px;
+}
+/* Admin Modal Styles - Make sure these exist */
+.admin-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 9998;
+  animation: fadeIn 0.2s ease;
+}
+
+.admin-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 28px 28px 0 0;
+  max-width: 500px;
+  margin: 0 auto;
+  z-index: 9999;
+  animation: slideUp 0.3s ease;
+  overflow: hidden;
+}
+
+.admin-sheet-header {
+  padding: 24px;
+  text-align: center;
+  background: linear-gradient(135deg, #4f46e5, #4338ca);
+  color: white;
+}
+
+.admin-avatar-large {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+}
+
+.admin-avatar-large i {
+  font-size: 32px;
+  color: white;
+}
+
+.admin-sheet-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.admin-sheet-header p {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.admin-sheet-actions {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-sheet-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 16px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.admin-sheet-btn.logout {
+  background: #ef4444;
+  color: white;
+}
+
+.admin-sheet-btn.logout:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+}
+
+.admin-sheet-btn.cancel {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.admin-sheet-btn.cancel:hover {
+  background: #e2e8f0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.nav-item:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.nav-item:active {
+  transform: scale(0.95);
 }
