@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from '../config/firebase';
 import { 
-  collection, getDocs, doc, updateDoc, deleteDoc, getDoc
-} from 'firebase/firestore';
+  collection, getDocs, doc, updateDoc, deleteDoc, getDoc, addDoc
+} from 'firebase/firestore';  // ← Add addDoc here
 import { sendPasswordResetEmail } from 'firebase/auth';
 
 const Members = () => {
@@ -32,7 +32,8 @@ const Members = () => {
     telegram: '',
     department: '',
     batchYear: '',
-    role: 'member'
+    role: 'member',
+    paymentStatus: 'unpaid'
   });
 
   const BOT_TOKEN = "8784743959:AAEMA8yJqQYVcV3nOkdhyLQKgc5r6OX3FEI";
@@ -41,6 +42,12 @@ const Members = () => {
     { value: 'admin', label: 'Admin', icon: 'fa-crown', color: '#f59e0b' },
     { value: 'member', label: 'Member', icon: 'fa-user', color: '#3b82f6' },
     { value: 'viewer', label: 'Viewer', icon: 'fa-eye', color: '#10b981' }
+  ];
+
+  const paymentStatusOptions = [
+    { value: 'paid', label: 'Paid', icon: 'fa-check-circle', color: '#10b981' },
+    { value: 'unpaid', label: 'Unpaid', icon: 'fa-clock', color: '#ef4444' },
+    { value: 'pending', label: 'Pending', icon: 'fa-hourglass-half', color: '#f59e0b' }
   ];
 
   useEffect(() => {
@@ -63,31 +70,9 @@ const Members = () => {
     };
   };
 
-  // Helper function to check if a payment covers the current month
-  const coversCurrentMonth = (payment, currentMonth) => {
-    if (payment.status !== "approved") return false;
-    if (!payment.monthsPaid || !Array.isArray(payment.monthsPaid)) return false;
-    
-    // Check each month in monthsPaid array
-    return payment.monthsPaid.some(monthPaid => {
-      // Try different formats: "Jan 2024", "January 2024", "Jan", "January"
-      const monthPaidLower = monthPaid.toLowerCase();
-      const currentMonthShortLower = currentMonth.shortName.toLowerCase();
-      const currentMonthFullLower = currentMonth.name.toLowerCase();
-      const currentYearStr = currentMonth.year.toString();
-      
-      // Check if month matches (either short or full name) AND year matches
-      return (monthPaidLower.includes(currentMonthShortLower) || 
-              monthPaidLower.includes(currentMonthFullLower)) &&
-             monthPaidLower.includes(currentYearStr);
-    });
-  };
-
   const calculatePaidStatus = (paymentsList, membersList) => {
     const currentMonth = getCurrentMonthInfo();
     const paidSet = new Set();
-    
-    console.log("Current Month:", currentMonth);
     
     paymentsList.forEach(payment => {
       if (payment.status !== "approved") return;
@@ -95,11 +80,21 @@ const Members = () => {
       const memberId = payment.memberId || payment.uid;
       if (!memberId) return;
       
-      const isPaid = coversCurrentMonth(payment, currentMonth);
-      
-      if (isPaid) {
-        console.log(`Member ${memberId} paid for ${currentMonth.display}`);
-        paidSet.add(memberId);
+      if (payment.monthsPaid && Array.isArray(payment.monthsPaid)) {
+        const isPaid = payment.monthsPaid.some(monthPaid => {
+          const monthPaidLower = monthPaid.toLowerCase();
+          const currentMonthShortLower = currentMonth.shortName.toLowerCase();
+          const currentMonthFullLower = currentMonth.name.toLowerCase();
+          const currentYearStr = currentMonth.year.toString();
+          
+          return (monthPaidLower.includes(currentMonthShortLower) || 
+                  monthPaidLower.includes(currentMonthFullLower)) &&
+                 monthPaidLower.includes(currentYearStr);
+        });
+        
+        if (isPaid) {
+          paidSet.add(memberId);
+        }
       }
     });
     
@@ -109,7 +104,6 @@ const Members = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      // Load members
       const membersSnapshot = await getDocs(collection(db, "members"));
       const membersList = membersSnapshot.docs.map(doc => ({
         id: doc.id,
@@ -117,7 +111,6 @@ const Members = () => {
       }));
       setAllMembers(membersList);
 
-      // Load payments
       const paymentsSnapshot = await getDocs(collection(db, "payments"));
       const paymentsList = paymentsSnapshot.docs.map(doc => ({
         id: doc.id,
@@ -125,12 +118,8 @@ const Members = () => {
       }));
       setAllPayments(paymentsList);
       
-      // Calculate paid status based on actual payment records
       const paidSet = calculatePaidStatus(paymentsList, membersList);
       setCurrentMonthPaidSet(paidSet);
-      
-      console.log("Paid members count:", paidSet.size);
-      console.log("Paid member IDs:", Array.from(paidSet));
       
     } catch (error) {
       console.error('Error loading data:', error);
@@ -259,6 +248,7 @@ const Members = () => {
 
   const openEditModal = (member, e) => {
     if (e) e.stopPropagation();
+    const isPaid = currentMonthPaidSet.has(member.id);
     setCurrentEditingMember(member);
     setEditForm({
       fullName: member.fullName || '',
@@ -267,7 +257,8 @@ const Members = () => {
       telegram: member.telegram || '',
       department: member.department || '',
       batchYear: member.batchYear || '',
-      role: member.role || 'member'
+      role: member.role || 'member',
+      paymentStatus: isPaid ? 'paid' : 'unpaid'
     });
     setShowEditModal(true);
   };
@@ -282,6 +273,7 @@ const Members = () => {
     if (!currentEditingMember) return;
     
     try {
+      // Update member info
       await updateDoc(doc(db, "members", currentEditingMember.id), {
         fullName: editForm.fullName,
         email: editForm.email,
@@ -291,6 +283,50 @@ const Members = () => {
         batchYear: editForm.batchYear,
         role: editForm.role
       });
+      
+      // If payment status is being changed to 'paid', we need to create/update payment record
+      const currentIsPaid = currentMonthPaidSet.has(currentEditingMember.id);
+      const newIsPaid = editForm.paymentStatus === 'paid';
+      
+      if (currentIsPaid !== newIsPaid) {
+        const currentMonth = getCurrentMonthInfo();
+        
+        if (newIsPaid) {
+          // Create a payment record for this member for current month
+          const paymentsRef = collection(db, "payments");
+          const newPayment = {
+            memberId: currentEditingMember.id,
+            uid: currentEditingMember.id,
+            memberName: editForm.fullName,
+            amount: 50,
+            status: "approved",
+            monthsPaid: [`${currentMonth.shortName} ${currentMonth.year}`],
+            submittedAt: new Date(),
+            approvedAt: new Date(),
+            paymentMethod: "admin_override"
+          };
+          
+          // Check if payment already exists
+          const existingPayment = allPayments.find(p => 
+            (p.memberId === currentEditingMember.id || p.uid === currentEditingMember.id) &&
+            p.monthsPaid?.some(m => m.includes(currentMonth.shortName))
+          );
+          
+          if (existingPayment) {
+            await updateDoc(doc(db, "payments", existingPayment.id), {
+              status: "approved",
+              approvedAt: new Date()
+            });
+          } else {
+            await addDoc(paymentsRef, newPayment);
+          }
+          showToast("✅ Payment status updated to Paid");
+        } else {
+          // Mark as unpaid - we don't delete, just inform
+          showToast("ℹ️ Payment status set to Unpaid. Member will need to make payment.");
+        }
+      }
+      
       showToast("✅ Member updated successfully");
       closeEditModal();
       await loadData();
@@ -489,28 +525,6 @@ const Members = () => {
         </div>
       </div>
 
-      {/* Action Bar */}
-      <div className="filter-bar">
-        <div className="filter-row">
-          <div className="bulk-actions">
-            <button className="btn-secondary" onClick={selectAllVisible}>
-              <i className="fa fa-check-double"></i> Select All
-            </button>
-            <button className="btn-secondary" onClick={deselectAll}>
-              <i className="fa fa-times"></i> Clear
-            </button>
-            <button className="btn-danger" onClick={handleBulkDelete}>
-              <i className="fa fa-trash-alt"></i> Delete
-            </button>
-            {selectedMemberIds.size > 0 && (
-              <button className="btn-telegram" onClick={bulkSendReminders}>
-                <i className="fab fa-telegram"></i> Remind ({selectedMemberIds.size})
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Filter Bar */}
       <div className="filter-bar">
         <div className="filter-row">
@@ -566,6 +580,28 @@ const Members = () => {
           }}>
             <i className="fa fa-undo"></i> Reset
           </button>
+        </div>
+      </div>
+
+      {/* Bulk Actions - Moved inline */}
+      <div className="filter-bar">
+        <div className="filter-row">
+          <div className="bulk-actions" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <button className="btn-secondary" onClick={selectAllVisible}>
+              <i className="fa fa-check-double"></i> Select All
+            </button>
+            <button className="btn-secondary" onClick={deselectAll}>
+              <i className="fa fa-times"></i> Clear
+            </button>
+            <button className="btn-danger" onClick={handleBulkDelete}>
+              <i className="fa fa-trash-alt"></i> Delete Selected
+            </button>
+            {selectedMemberIds.size > 0 && (
+              <button className="btn-telegram" onClick={bulkSendReminders}>
+                <i className="fab fa-telegram"></i> Remind ({selectedMemberIds.size})
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -673,7 +709,7 @@ const Members = () => {
         </div>
       </div>
 
-      {/* Edit Modal */}
+      {/* Edit Modal with Payment Status */}
       <div className={`modal-overlay ${showEditModal ? 'show' : ''}`} onClick={closeEditModal}>
         <div className="history-modal" onClick={e => e.stopPropagation()}>
           <div className="modal-header">
@@ -757,6 +793,29 @@ const Members = () => {
                   ))}
                 </select>
               </div>
+              
+              {/* Payment Status Field */}
+              <div className="form-group">
+                <label><i className="fa fa-credit-card"></i> Payment Status</label>
+                <select 
+                  value={editForm.paymentStatus}
+                  onChange={(e) => setEditForm({...editForm, paymentStatus: e.target.value})}
+                  style={{
+                    borderColor: editForm.paymentStatus === 'paid' ? '#10b981' : 
+                                editForm.paymentStatus === 'pending' ? '#f59e0b' : '#ef4444'
+                  }}
+                >
+                  {paymentStatusOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <small style={{ color: 'var(--text-muted)', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                  <i className="fa fa-info-circle"></i> Changing status to "Paid" will mark this month's payment as completed
+                </small>
+              </div>
+              
               <div className="form-divider">
                 <button type="button" className="reset-password-btn" onClick={handleSendResetEmail}>
                   <i className="fa fa-key"></i> Send Password Reset Email
