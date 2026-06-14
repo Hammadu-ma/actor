@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db, auth } from '../config/firebase';
 import { 
   collection, getDocs, doc, updateDoc, deleteDoc, getDoc, addDoc
-} from 'firebase/firestore';  // ← Add addDoc here
+} from 'firebase/firestore';
 import { sendPasswordResetEmail } from 'firebase/auth';
 
 const Members = () => {
@@ -273,7 +273,6 @@ const Members = () => {
     if (!currentEditingMember) return;
     
     try {
-      // Update member info
       await updateDoc(doc(db, "members", currentEditingMember.id), {
         fullName: editForm.fullName,
         email: editForm.email,
@@ -284,7 +283,6 @@ const Members = () => {
         role: editForm.role
       });
       
-      // If payment status is being changed to 'paid', we need to create/update payment record
       const currentIsPaid = currentMonthPaidSet.has(currentEditingMember.id);
       const newIsPaid = editForm.paymentStatus === 'paid';
       
@@ -292,7 +290,6 @@ const Members = () => {
         const currentMonth = getCurrentMonthInfo();
         
         if (newIsPaid) {
-          // Create a payment record for this member for current month
           const paymentsRef = collection(db, "payments");
           const newPayment = {
             memberId: currentEditingMember.id,
@@ -306,7 +303,6 @@ const Members = () => {
             paymentMethod: "admin_override"
           };
           
-          // Check if payment already exists
           const existingPayment = allPayments.find(p => 
             (p.memberId === currentEditingMember.id || p.uid === currentEditingMember.id) &&
             p.monthsPaid?.some(m => m.includes(currentMonth.shortName))
@@ -322,7 +318,6 @@ const Members = () => {
           }
           showToast("✅ Payment status updated to Paid");
         } else {
-          // Mark as unpaid - we don't delete, just inform
           showToast("ℹ️ Payment status set to Unpaid. Member will need to make payment.");
         }
       }
@@ -583,28 +578,6 @@ const Members = () => {
         </div>
       </div>
 
-      {/* Bulk Actions - Moved inline */}
-      <div className="filter-bar">
-        <div className="filter-row">
-          <div className="bulk-actions" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <button className="btn-secondary" onClick={selectAllVisible}>
-              <i className="fa fa-check-double"></i> Select All
-            </button>
-            <button className="btn-secondary" onClick={deselectAll}>
-              <i className="fa fa-times"></i> Clear
-            </button>
-            <button className="btn-danger" onClick={handleBulkDelete}>
-              <i className="fa fa-trash-alt"></i> Delete Selected
-            </button>
-            {selectedMemberIds.size > 0 && (
-              <button className="btn-telegram" onClick={bulkSendReminders}>
-                <i className="fab fa-telegram"></i> Remind ({selectedMemberIds.size})
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Members List */}
       <div className="payment-cards">
         {filteredMembers.length === 0 ? (
@@ -691,17 +664,23 @@ const Members = () => {
         )}
       </div>
 
-      {/* Bulk Actions Bar */}
+      {/* Bulk Actions Bar - Only One (Fixed Bottom Bar) */}
       <div className={`bulk-actions-bar ${selectedMemberIds.size > 0 ? 'show' : ''}`}>
         <span className="bulk-selected">
           <i className="fa fa-check-circle"></i> {selectedMemberIds.size} selected
         </span>
         <div className="bulk-buttons">
+          <button className="bulk-btn select-all" onClick={selectAllVisible}>
+            <i className="fa fa-check-double"></i> Select All
+          </button>
+          <button className="bulk-btn clear" onClick={deselectAll}>
+            <i className="fa fa-times"></i> Clear
+          </button>
           <button className="bulk-btn telegram" onClick={bulkSendReminders}>
-            <i className="fab fa-telegram"></i> Remind All
+            <i className="fab fa-telegram"></i> Remind
           </button>
           <button className="bulk-btn delete" onClick={handleBulkDelete}>
-            <i className="fa fa-trash-alt"></i> Delete All
+            <i className="fa fa-trash-alt"></i> Delete
           </button>
           <button className="bulk-btn close" onClick={deselectAll}>
             <i className="fa fa-times"></i> Close
