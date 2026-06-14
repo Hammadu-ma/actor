@@ -6,6 +6,7 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import Payments from './pages/Payments.jsx';
 import Members from './pages/Members.jsx';
 import Reminders from './pages/Reminders.jsx';
+import AdminPage from './pages/AdminPage.jsx';
 import Login from './pages/Login.jsx';
 import './styles/bottomNav.css';
 
@@ -44,57 +45,6 @@ const Unauthorized = () => {
         </button>
       </div>
     </div>
-  );
-};
-
-// Admin Settings Component (simple placeholder)
-const AdminSettings = () => {
-  const [showModal, setShowModal] = useState(true); // Auto show modal when entering admin page
-
-  useEffect(() => {
-    setShowModal(true);
-  }, []);
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-  };
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
-
-  return (
-    <>
-      {/* Admin Modal - Bottom Sheet */}
-      {showModal && (
-        <>
-          <div className="admin-overlay" onClick={handleCloseModal} />
-          <div className="admin-sheet">
-            <div className="admin-sheet-header">
-              <div className="admin-avatar-large">
-                <i className="fa fa-user-shield"></i>
-              </div>
-              <h3>Admin Portal</h3>
-              <p>JUMJ Management System</p>
-            </div>
-            <div className="admin-sheet-actions">
-              <button className="admin-sheet-btn logout" onClick={handleLogout}>
-                <i className="fa fa-sign-out-alt"></i>
-                <span>Logout</span>
-              </button>
-              <button className="admin-sheet-btn cancel" onClick={handleCloseModal}>
-                <i className="fa fa-times"></i>
-                <span>Cancel</span>
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-    </>
   );
 };
 
@@ -241,7 +191,7 @@ function App() {
             <Route path="/payments" element={<Payments />} />
             <Route path="/members" element={<Members />} />
             <Route path="/reminders" element={<Reminders />} />
-            <Route path="/admin" element={<AdminSettings />} />
+            <Route path="/admin" element={<AdminPage />} />
           </Routes>
         </div>
         <BottomNav />

@@ -4487,3 +4487,17 @@ input:checked + .toggle-slider:before {
 .nav-item:active {
   transform: scale(0.95);
 }
+/* If you need the action-buttons-group class, add this */
+.action-buttons-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.action-buttons-group .btn-primary,
+.action-buttons-group .btn-danger {
+  width: 100%;
+  justify-content: center;
+  padding: 14px;
+  font-size: 15px;
+}
