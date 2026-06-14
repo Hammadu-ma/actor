@@ -578,6 +578,28 @@ const Members = () => {
         </div>
       </div>
 
+      {/* Action Bar - IMPORTANT: This is the one we keep */}
+      <div className="filter-bar">
+        <div className="filter-row">
+          <div className="bulk-actions" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <button className="btn-secondary" onClick={selectAllVisible}>
+              <i className="fa fa-check-double"></i> Select All
+            </button>
+            <button className="btn-secondary" onClick={deselectAll}>
+              <i className="fa fa-times"></i> Clear
+            </button>
+            <button className="btn-danger" onClick={handleBulkDelete}>
+              <i className="fa fa-trash-alt"></i> Delete Selected
+            </button>
+            {selectedMemberIds.size > 0 && (
+              <button className="btn-telegram" onClick={bulkSendReminders}>
+                <i className="fab fa-telegram"></i> Remind ({selectedMemberIds.size})
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Members List */}
       <div className="payment-cards">
         {filteredMembers.length === 0 ? (
@@ -662,30 +684,6 @@ const Members = () => {
             );
           })
         )}
-      </div>
-
-      {/* Bulk Actions Bar - Only One (Fixed Bottom Bar) */}
-      <div className={`bulk-actions-bar ${selectedMemberIds.size > 0 ? 'show' : ''}`}>
-        <span className="bulk-selected">
-          <i className="fa fa-check-circle"></i> {selectedMemberIds.size} selected
-        </span>
-        <div className="bulk-buttons">
-          <button className="bulk-btn select-all" onClick={selectAllVisible}>
-            <i className="fa fa-check-double"></i> Select All
-          </button>
-          <button className="bulk-btn clear" onClick={deselectAll}>
-            <i className="fa fa-times"></i> Clear
-          </button>
-          <button className="bulk-btn telegram" onClick={bulkSendReminders}>
-            <i className="fab fa-telegram"></i> Remind
-          </button>
-          <button className="bulk-btn delete" onClick={handleBulkDelete}>
-            <i className="fa fa-trash-alt"></i> Delete
-          </button>
-          <button className="bulk-btn close" onClick={deselectAll}>
-            <i className="fa fa-times"></i> Close
-          </button>
-        </div>
       </div>
 
       {/* Edit Modal with Payment Status */}
