@@ -7,7 +7,6 @@ import { useNavigate } from 'react-router-dom';
 
 const Reminders = () => {
   const navigate = useNavigate();
-  const [checkingAuth, setCheckingAuth] = useState(true);
   const [allMembers, setAllMembers] = useState([]);
   const [allPayments, setAllPayments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -69,7 +68,6 @@ const Reminders = () => {
 
   // Load data function - stable reference
   const loadData = useCallback(async () => {
-    // Prevent multiple loads
     if (dataLoadedRef.current && allMembers.length > 0) return;
     
     try {
@@ -283,7 +281,7 @@ const Reminders = () => {
     }
   }, [autoScheduleEnabled, scheduleConfig, startAutoScheduler, stopAutoScheduler, showToast]);
 
-  // FIRST useEffect - Admin check (MUST be first)
+  // Admin check
   useEffect(() => {
     const checkAdmin = async () => {
       const user = auth.currentUser;
@@ -302,29 +300,25 @@ const Reminders = () => {
       } catch (error) {
         console.error("Auth error:", error);
         navigate('/');
-      } finally {
-        setCheckingAuth(false);
       }
     };
     
     checkAdmin();
   }, [navigate]);
 
-  // SECOND useEffect - Load data after auth check
+  // Load data
   useEffect(() => {
-    if (!checkingAuth) {
-      const init = async () => {
-        await loadData();
-        loadLogs();
-        loadScheduleSettings();
-      };
-      init();
-    }
+    const init = async () => {
+      await loadData();
+      loadLogs();
+      loadScheduleSettings();
+    };
+    init();
     
     return () => {
       if (autoScheduleInterval) clearInterval(autoScheduleInterval);
     };
-  }, [checkingAuth, loadData, loadLogs, loadScheduleSettings, autoScheduleInterval]);
+  }, []); // Empty dependency array - only runs once
 
   const sendTestReminder = async () => {
     if (!testTelegram) {
@@ -379,61 +373,19 @@ const Reminders = () => {
   const withoutTelegram = unpaidMembers.length - withTelegram.length;
   const currentMonth = getCurrentMonthInfo();
 
-  // Conditional returns - ONLY at the end, after all hooks
-  if (checkingAuth) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Verifying access...</p>
-      </div>
-    );
-  }
-
-  // Loading Skeleton
+  // Loading state
   if (loading) {
     return (
       <div className="app-container">
         <div className="payments-header">
           <div className="header-title">
             <h1><i className="fa fa-bell"></i> Smart Reminder Scheduler</h1>
-            <p>Automatically send payment reminders to unpaid members every month</p>
+            <p>Loading reminder data...</p>
           </div>
         </div>
-        
-        {/* Stats Skeleton */}
-        <div className="stats-row">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="stat-skeleton">
-              <div className="stat-skeleton-icon"></div>
-              <div className="stat-skeleton-text"></div>
-            </div>
-          ))}
-        </div>
-        
-        {/* Schedule Card Skeleton */}
-        <div className="schedule-skeleton"></div>
-        
-        {/* Templates Grid Skeleton */}
-        <div className="templates-skeleton">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="template-skeleton"></div>
-          ))}
-        </div>
-        
-        {/* Action Buttons Skeleton */}
-        <div className="action-buttons-skeleton">
-          <div className="btn-skeleton"></div>
-          <div className="btn-skeleton"></div>
-          <div className="btn-skeleton"></div>
-          <div className="btn-skeleton"></div>
-        </div>
-        
-        {/* Logs Skeleton */}
-        <div className="logs-skeleton">
-          <div className="logs-header-skeleton"></div>
-          <div className="log-item-skeleton"></div>
-          <div className="log-item-skeleton"></div>
-          <div className="log-item-skeleton"></div>
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading...</p>
         </div>
       </div>
     );
@@ -451,8 +403,8 @@ const Reminders = () => {
       {/* Stats Row */}
       <div className="stats-row">
         <div className="stat-card clickable" onClick={sendAllReminders}>
-          <div className="stat-icon unpaid-icon">
-            <i className="fa fa-users"></i>
+          <div className="stat-icon" style={{ background: '#fef3c7' }}>
+            <i className="fa fa-users" style={{ color: '#f59e0b' }}></i>
           </div>
           <div className="stat-info">
             <h3>{unpaidMembers.length}</h3>
@@ -461,8 +413,8 @@ const Reminders = () => {
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon telegram-icon">
-            <i className="fab fa-telegram"></i>
+          <div className="stat-icon" style={{ background: '#dbeafe' }}>
+            <i className="fab fa-telegram" style={{ color: '#3b82f6' }}></i>
           </div>
           <div className="stat-info">
             <h3>{withTelegram.length}</h3>
@@ -470,8 +422,8 @@ const Reminders = () => {
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon no-telegram-icon">
-            <i className="fa fa-ban"></i>
+          <div className="stat-icon" style={{ background: '#fee2e2' }}>
+            <i className="fa fa-ban" style={{ color: '#ef4444' }}></i>
           </div>
           <div className="stat-info">
             <h3>{withoutTelegram}</h3>
@@ -480,8 +432,8 @@ const Reminders = () => {
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon month-icon">
-            <i className="fa fa-calendar"></i>
+          <div className="stat-icon" style={{ background: '#d1fae5' }}>
+            <i className="fa fa-calendar" style={{ color: '#10b981' }}></i>
           </div>
           <div className="stat-info">
             <h3>{currentMonth.shortName}</h3>
@@ -564,7 +516,7 @@ const Reminders = () => {
         </div>
       </div>
 
-      {/* Reminder Templates */}
+      {/* Rest of your JSX remains the same... */}
       <div className="section-header">
         <h3><i className="fa fa-file-alt"></i> Reminder Templates</h3>
       </div>
@@ -584,7 +536,6 @@ const Reminders = () => {
         ))}
       </div>
 
-      {/* Action Buttons */}
       <div className="action-buttons-group">
         <button className="btn-primary" onClick={sendAllReminders}>
           <i className="fa fa-paper-plane"></i> Send Reminders Now
@@ -600,15 +551,9 @@ const Reminders = () => {
         </button>
       </div>
 
-      {/* Recent Activity Logs */}
       <div className="logs-section">
         <div className="logs-header">
           <h3><i className="fa fa-history"></i> Reminder History</h3>
-          <span className="last-run-info">
-            {localStorage.getItem("reminder_schedule") && JSON.parse(localStorage.getItem("reminder_schedule")).lastRun && 
-              `Last auto-run: ${new Date(JSON.parse(localStorage.getItem("reminder_schedule")).lastRun).toLocaleString()}`
-            }
-          </span>
         </div>
         <div className="logs-list">
           {reminderLogs.length === 0 ? (
