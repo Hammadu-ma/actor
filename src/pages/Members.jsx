@@ -4,11 +4,8 @@ import {
   collection, getDocs, doc, updateDoc, deleteDoc, getDoc
 } from 'firebase/firestore';
 import { sendPasswordResetEmail } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
 
 const Members = () => {
-  const navigate = useNavigate();
-  const [checkingAuth, setCheckingAuth] = useState(true);
   const [allMembers, setAllMembers] = useState([]);
   const [allPayments, setAllPayments] = useState([]);
   const [selectedMemberIds, setSelectedMemberIds] = useState(new Set());
@@ -46,54 +43,69 @@ const Members = () => {
     { value: 'viewer', label: 'Viewer', icon: 'fa-eye', color: '#10b981' }
   ];
 
-  // Function definitions
+  useEffect(() => {
+    loadData();
+  }, []);
+
   const getCurrentMonthInfo = () => {
     const now = new Date();
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+    const shortMonthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                             'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
     return {
-      name: now.toLocaleString('default', { month: 'long' }),
-      shortName: now.toLocaleString('default', { month: 'short' }),
+      name: monthNames[now.getMonth()],
+      shortName: shortMonthNames[now.getMonth()],
+      monthNumber: now.getMonth() + 1,
       year: now.getFullYear(),
-      display: `${now.toLocaleString('default', { month: 'long' })} ${now.getFullYear()}`
+      display: `${monthNames[now.getMonth()]} ${now.getFullYear()}`
     };
   };
 
-  const showToast = (message, isError = false) => {
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerHTML = `<i class="fa ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 2800);
+  // Helper function to check if a payment covers the current month
+  const coversCurrentMonth = (payment, currentMonth) => {
+    if (payment.status !== "approved") return false;
+    if (!payment.monthsPaid || !Array.isArray(payment.monthsPaid)) return false;
+    
+    // Check each month in monthsPaid array
+    return payment.monthsPaid.some(monthPaid => {
+      // Try different formats: "Jan 2024", "January 2024", "Jan", "January"
+      const monthPaidLower = monthPaid.toLowerCase();
+      const currentMonthShortLower = currentMonth.shortName.toLowerCase();
+      const currentMonthFullLower = currentMonth.name.toLowerCase();
+      const currentYearStr = currentMonth.year.toString();
+      
+      // Check if month matches (either short or full name) AND year matches
+      return (monthPaidLower.includes(currentMonthShortLower) || 
+              monthPaidLower.includes(currentMonthFullLower)) &&
+             monthPaidLower.includes(currentYearStr);
+    });
   };
 
-  // FIXED: Calculate paid status correctly
-  const calculatePaidStatus = () => {
+  const calculatePaidStatus = (paymentsList, membersList) => {
     const currentMonth = getCurrentMonthInfo();
     const paidSet = new Set();
     
-    allPayments.forEach(payment => {
-      // Only check approved payments
+    console.log("Current Month:", currentMonth);
+    
+    paymentsList.forEach(payment => {
       if (payment.status !== "approved") return;
       
-      const targetId = payment.memberId || payment.uid;
-      if (!targetId) return;
+      const memberId = payment.memberId || payment.uid;
+      if (!memberId) return;
       
-      // Check if payment covers current month
-      if (payment.monthsPaid && Array.isArray(payment.monthsPaid)) {
-        const coversCurrentMonth = payment.monthsPaid.some(month => {
-          // Check if month string includes current month name (e.g., "Jan 2024")
-          return month.toLowerCase().includes(currentMonth.shortName.toLowerCase());
-        });
-        
-        if (coversCurrentMonth) {
-          paidSet.add(targetId);
-        }
+      const isPaid = coversCurrentMonth(payment, currentMonth);
+      
+      if (isPaid) {
+        console.log(`Member ${memberId} paid for ${currentMonth.display}`);
+        paidSet.add(memberId);
       }
     });
     
     return paidSet;
   };
 
-  // FIXED: Load data with proper payment date handling
   const loadData = async () => {
     setLoading(true);
     try {
@@ -105,18 +117,20 @@ const Members = () => {
       }));
       setAllMembers(membersList);
 
-      // Load payments with proper date handling
+      // Load payments
       const paymentsSnapshot = await getDocs(collection(db, "payments"));
       const paymentsList = paymentsSnapshot.docs.map(doc => ({
         id: doc.id,
-        ...doc.data(),
-        submittedAtDate: doc.data().submittedAt?.toDate?.() || new Date()
+        ...doc.data()
       }));
       setAllPayments(paymentsList);
       
-      // Calculate paid status AFTER payments are loaded
-      const paidSet = calculatePaidStatus();
+      // Calculate paid status based on actual payment records
+      const paidSet = calculatePaidStatus(paymentsList, membersList);
       setCurrentMonthPaidSet(paidSet);
+      
+      console.log("Paid members count:", paidSet.size);
+      console.log("Paid member IDs:", Array.from(paidSet));
       
     } catch (error) {
       console.error('Error loading data:', error);
@@ -126,41 +140,6 @@ const Members = () => {
     }
   };
 
-  // FIRST useEffect - Admin check
-  useEffect(() => {
-    const checkAdmin = async () => {
-      const user = auth.currentUser;
-      if (!user) {
-        navigate('/');
-        return;
-      }
-      
-      try {
-        const userDoc = await getDoc(doc(db, "members", user.uid));
-        const role = userDoc.data()?.role;
-        
-        if (role !== 'admin') {
-          navigate('/');
-        }
-      } catch (error) {
-        console.error("Auth error:", error);
-        navigate('/');
-      } finally {
-        setCheckingAuth(false);
-      }
-    };
-    
-    checkAdmin();
-  }, [navigate]);
-
-  // SECOND useEffect - Load data after auth check
-  useEffect(() => {
-    if (!checkingAuth) {
-      loadData();
-    }
-  }, [checkingAuth]);
-
-  // Rest of function definitions (keep all existing ones - deleteMemberById, getInitials, etc.)
   const deleteMemberById = async (id) => {
     try {
       await deleteDoc(doc(db, "members", id));
@@ -403,6 +382,14 @@ const Members = () => {
     showToast("✅ CSV exported successfully");
   };
 
+  const showToast = (message, isError = false) => {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<i class="fa ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2800);
+  };
+
   const getDepartments = () => {
     return [...new Set(allMembers.map(m => m.department).filter(Boolean))];
   };
@@ -418,16 +405,6 @@ const Members = () => {
   const paidCount = currentMonthPaidSet.size;
   const unpaidCount = totalMembers - paidCount;
   const currentMonth = getCurrentMonthInfo();
-
-  // Conditional returns - ONLY at the end
-  if (checkingAuth) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Verifying access...</p>
-      </div>
-    );
-  }
 
   if (loading) {
     return (
@@ -465,7 +442,7 @@ const Members = () => {
       <div className="payments-header">
         <div className="header-title">
           <h1>Members</h1>
-          <p>{totalMembers} total members • {unpaidCount} unpaid this month</p>
+          <p>{totalMembers} total members • {paidCount} paid • {unpaidCount} unpaid this month</p>
         </div>
         <button className="btn-primary" onClick={exportToCSV}>
           <i className="fa fa-download"></i> Export CSV
@@ -655,20 +632,20 @@ const Members = () => {
                         className="action-btn remind" 
                         onClick={(e) => sendTelegramReminder(member.id, member.fullName, member.telegram, e)}
                       >
-                        <i className="fab fa-telegram"></i> Remind
+                        <i className="fab fa-telegram"></i> <span>Remind</span>
                       </button>
                     )}
                     <button 
                       className="action-btn edit" 
                       onClick={(e) => openEditModal(member, e)}
                     >
-                      <i className="fa fa-pen"></i> Edit
+                      <i className="fa fa-pen"></i> <span>Edit</span>
                     </button>
                     <button 
                       className="action-btn delete" 
                       onClick={(e) => handleDeleteMember(member.id, member.fullName, e)}
                     >
-                      <i className="fa fa-trash"></i> Delete
+                      <i className="fa fa-trash"></i> <span>Delete</span>
                     </button>
                   </div>
                 </div>
@@ -680,13 +657,15 @@ const Members = () => {
 
       {/* Bulk Actions Bar */}
       <div className={`bulk-actions-bar ${selectedMemberIds.size > 0 ? 'show' : ''}`}>
-        <span className="bulk-selected">{selectedMemberIds.size} selected</span>
+        <span className="bulk-selected">
+          <i className="fa fa-check-circle"></i> {selectedMemberIds.size} selected
+        </span>
         <div className="bulk-buttons">
           <button className="bulk-btn telegram" onClick={bulkSendReminders}>
-            <i className="fab fa-telegram"></i> Remind
+            <i className="fab fa-telegram"></i> Remind All
           </button>
           <button className="bulk-btn delete" onClick={handleBulkDelete}>
-            <i className="fa fa-trash-alt"></i> Delete
+            <i className="fa fa-trash-alt"></i> Delete All
           </button>
           <button className="bulk-btn close" onClick={deselectAll}>
             <i className="fa fa-times"></i> Close
@@ -694,8 +673,124 @@ const Members = () => {
         </div>
       </div>
 
-      {/* Edit Modal - Keep as is */}
-      {/* ... rest of modals ... */}
+      {/* Edit Modal */}
+      <div className={`modal-overlay ${showEditModal ? 'show' : ''}`} onClick={closeEditModal}>
+        <div className="history-modal" onClick={e => e.stopPropagation()}>
+          <div className="modal-header">
+            <h2>
+              <i className="fa fa-user-edit"></i> Edit Member
+            </h2>
+            <button className="close-modal" onClick={closeEditModal}>
+              <i className="fa fa-times"></i>
+            </button>
+          </div>
+          <div className="modal-body">
+            <form onSubmit={handleEditSubmit}>
+              <div className="form-group">
+                <label>Full Name</label>
+                <input 
+                  type="text" 
+                  value={editForm.fullName}
+                  onChange={(e) => setEditForm({...editForm, fullName: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Email Address</label>
+                <input 
+                  type="email" 
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Phone Number</label>
+                  <input 
+                    type="tel" 
+                    value={editForm.phone}
+                    onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
+                    placeholder="+251XXXXXXXXX"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Telegram Username</label>
+                  <input 
+                    type="text" 
+                    value={editForm.telegram}
+                    onChange={(e) => setEditForm({...editForm, telegram: e.target.value})}
+                    placeholder="@username"
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Department</label>
+                  <input 
+                    type="text" 
+                    value={editForm.department}
+                    onChange={(e) => setEditForm({...editForm, department: e.target.value})}
+                    placeholder="e.g., Computer Science"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Batch Year</label>
+                  <input 
+                    type="text" 
+                    value={editForm.batchYear}
+                    onChange={(e) => setEditForm({...editForm, batchYear: e.target.value})}
+                    placeholder="e.g., 2024"
+                  />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>User Role</label>
+                <select 
+                  value={editForm.role}
+                  onChange={(e) => setEditForm({...editForm, role: e.target.value})}
+                >
+                  {roleOptions.map(role => (
+                    <option key={role.value} value={role.value}>
+                      {role.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-divider">
+                <button type="button" className="reset-password-btn" onClick={handleSendResetEmail}>
+                  <i className="fa fa-key"></i> Send Password Reset Email
+                </button>
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn-cancel" onClick={closeEditModal}>Cancel</button>
+                <button type="submit" className="btn-save">
+                  <i className="fa fa-save"></i> Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {/* Confirm Dialog */}
+      <div className={`confirm-overlay ${showConfirmDialog ? 'show' : ''}`} onClick={() => setShowConfirmDialog(false)}>
+        <div className="confirm-dialog" onClick={e => e.stopPropagation()}>
+          <div className="confirm-icon">
+            <i className="fa fa-exclamation-triangle"></i>
+          </div>
+          <h3>Confirm Delete</h3>
+          <p>{confirmData.message}</p>
+          <div className="confirm-actions">
+            <button className="confirm-cancel" onClick={() => setShowConfirmDialog(false)}>
+              Cancel
+            </button>
+            <button className="confirm-delete" onClick={confirmData.onConfirm}>
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
