@@ -1,8 +1,13 @@
-import React, { useState } from 'react'
+// App.js
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import Payments from './pages/Payments.jsx';  // Changed from .js to .jsx
-import Members from './pages/Members.jsx';    // Changed from .js to .jsx
-import Reminders from './pages/Reminders.jsx'; // Changed from .js to .jsx
+import { auth, db } from './config/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import Payments from './pages/Payments.jsx';
+import Members from './pages/Members.jsx';
+import Reminders from './pages/Reminders.jsx';
+import Login from './pages/Login.jsx';  // Import Login from separate file
 import './styles/bottomNav.css';
 
 // Bottom Navigation Component
@@ -18,9 +23,8 @@ const BottomNav = () => {
   ];
 
   const handleLogout = async () => {
-    const { auth } = await import('./config/firebase');
-    await auth.signOut();
-    window.location.href = '/login.html';
+    await signOut(auth);
+    window.location.reload();
   };
 
   return (
@@ -36,6 +40,13 @@ const BottomNav = () => {
             <span>{item.name}</span>
           </button>
         ))}
+        <button
+          className="nav-item"
+          onClick={() => setShowAdminMenu(true)}
+        >
+          <i className="fa fa-user-circle"></i>
+          <span>Admin</span>
+        </button>
       </nav>
 
       {/* Admin Menu Modal - Bottom Sheet */}
@@ -98,7 +109,95 @@ const MobileHeader = () => {
   );
 };
 
+// Unauthorized Component
+const Unauthorized = () => {
+  const handleLogout = async () => {
+    await signOut(auth);
+    window.location.reload();
+  };
+
+  return (
+    <div className="unauthorized-container">
+      <div className="unauthorized-card">
+        <div className="unauthorized-icon">
+          <i className="fa fa-shield-alt"></i>
+        </div>
+        <h1>Access Denied</h1>
+        <p>You don't have permission to access this application.</p>
+        <p className="unauthorized-message">This portal is only accessible to administrators.</p>
+        <div className="unauthorized-details">
+          <i className="fa fa-info-circle"></i>
+          <span>If you believe this is an error, please contact the system administrator.</span>
+        </div>
+        <button onClick={handleLogout} className="btn-primary">
+          <i className="fa fa-sign-out-alt"></i> Sign Out
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Loading Component
+const LoadingScreen = () => (
+  <div className="loading-container">
+    <div className="loading-spinner"></div>
+    <p>Loading...</p>
+  </div>
+);
+
+// Main App Component
 function App() {
+  const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser);
+      
+      if (firebaseUser) {
+        try {
+          const userDoc = await getDoc(doc(db, "members", firebaseUser.uid));
+          
+          if (!userDoc.exists()) {
+            await signOut(auth);
+            setIsAdmin(false);
+            setUser(null);
+          } else {
+            const userRole = userDoc.data().role || 'viewer';
+            setIsAdmin(userRole === 'admin');
+            
+            if (userRole !== 'admin') {
+              await signOut(auth);
+              setUser(null);
+            }
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          await signOut(auth);
+          setIsAdmin(false);
+          setUser(null);
+        }
+      }
+      
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
+  if (!user) {
+    return <Login />;
+  }
+
+  if (!isAdmin) {
+    return <Unauthorized />;
+  }
+
   return (
     <Router>
       <div className="app-bottom-nav">

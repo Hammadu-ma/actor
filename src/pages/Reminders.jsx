@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { db } from '../config/firebase';
+import { db, auth } from '../config/firebase';
 import { 
-  collection, getDocs
+  collection, getDocs, doc, getDoc
 } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 
 const Reminders = () => {
+  const navigate = useNavigate();
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [allMembers, setAllMembers] = useState([]);
   const [allPayments, setAllPayments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -280,19 +283,48 @@ const Reminders = () => {
     }
   }, [autoScheduleEnabled, scheduleConfig, startAutoScheduler, stopAutoScheduler, showToast]);
 
-  // Run once on mount
+  // FIRST useEffect - Admin check (MUST be first)
   useEffect(() => {
-    const init = async () => {
-      await loadData();
-      loadLogs();
-      loadScheduleSettings();
+    const checkAdmin = async () => {
+      const user = auth.currentUser;
+      if (!user) {
+        navigate('/');
+        return;
+      }
+      
+      try {
+        const userDoc = await getDoc(doc(db, "members", user.uid));
+        const role = userDoc.data()?.role;
+        
+        if (role !== 'admin') {
+          navigate('/');
+        }
+      } catch (error) {
+        console.error("Auth error:", error);
+        navigate('/');
+      } finally {
+        setCheckingAuth(false);
+      }
     };
-    init();
+    
+    checkAdmin();
+  }, [navigate]);
+
+  // SECOND useEffect - Load data after auth check
+  useEffect(() => {
+    if (!checkingAuth) {
+      const init = async () => {
+        await loadData();
+        loadLogs();
+        loadScheduleSettings();
+      };
+      init();
+    }
     
     return () => {
       if (autoScheduleInterval) clearInterval(autoScheduleInterval);
     };
-  }, []); // Empty dependency array - runs only once on mount
+  }, [checkingAuth, loadData, loadLogs, loadScheduleSettings, autoScheduleInterval]);
 
   const sendTestReminder = async () => {
     if (!testTelegram) {
@@ -346,6 +378,16 @@ const Reminders = () => {
   const withTelegram = unpaidMembers.filter(m => m.telegram && m.telegram.trim());
   const withoutTelegram = unpaidMembers.length - withTelegram.length;
   const currentMonth = getCurrentMonthInfo();
+
+  // Conditional returns - ONLY at the end, after all hooks
+  if (checkingAuth) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Verifying access...</p>
+      </div>
+    );
+  }
 
   // Loading Skeleton
   if (loading) {

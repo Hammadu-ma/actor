@@ -4,8 +4,11 @@ import {
   collection, getDocs, doc, updateDoc, deleteDoc, getDoc
 } from 'firebase/firestore';
 import { sendPasswordResetEmail } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
 
 const Members = () => {
+  const navigate = useNavigate();
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [allMembers, setAllMembers] = useState([]);
   const [allPayments, setAllPayments] = useState([]);
   const [selectedMemberIds, setSelectedMemberIds] = useState(new Set());
@@ -43,10 +46,7 @@ const Members = () => {
     { value: 'viewer', label: 'Viewer', icon: 'fa-eye', color: '#10b981' }
   ];
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
+  // Function definitions (must be before useEffects)
   const getCurrentMonthInfo = () => {
     const now = new Date();
     return {
@@ -54,6 +54,14 @@ const Members = () => {
       shortName: now.toLocaleString('default', { month: 'short' }),
       display: `${now.toLocaleString('default', { month: 'long' })} ${now.getFullYear()}`
     };
+  };
+
+  const showToast = (message, isError = false) => {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<i class="fa ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2800);
   };
 
   const calculatePaidStatus = () => {
@@ -100,6 +108,41 @@ const Members = () => {
     }
   };
 
+  // FIRST useEffect - Admin check (MUST be first)
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const user = auth.currentUser;
+      if (!user) {
+        navigate('/');
+        return;
+      }
+      
+      try {
+        const userDoc = await getDoc(doc(db, "members", user.uid));
+        const role = userDoc.data()?.role;
+        
+        if (role !== 'admin') {
+          navigate('/');
+        }
+      } catch (error) {
+        console.error("Auth error:", error);
+        navigate('/');
+      } finally {
+        setCheckingAuth(false);
+      }
+    };
+    
+    checkAdmin();
+  }, [navigate]);
+
+  // SECOND useEffect - Load data after auth check
+  useEffect(() => {
+    if (!checkingAuth) {
+      loadData();
+    }
+  }, [checkingAuth]);
+
+  // Rest of your function definitions
   const deleteMemberById = async (id) => {
     try {
       await deleteDoc(doc(db, "members", id));
@@ -342,14 +385,6 @@ const Members = () => {
     showToast("✅ CSV exported successfully");
   };
 
-  const showToast = (message, isError = false) => {
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerHTML = `<i class="fa ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 2800);
-  };
-
   const getDepartments = () => {
     return [...new Set(allMembers.map(m => m.department).filter(Boolean))];
   };
@@ -365,6 +400,16 @@ const Members = () => {
   const paidCount = currentMonthPaidSet.size;
   const unpaidCount = totalMembers - paidCount;
   const currentMonth = getCurrentMonthInfo();
+
+  // Conditional returns - ONLY at the end, after all hooks
+  if (checkingAuth) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Verifying access...</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

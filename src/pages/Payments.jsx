@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { db } from '../config/firebase';
+import { db, auth } from '../config/firebase';
 import { 
   collection, getDocs, doc, updateDoc, 
-  serverTimestamp, query, orderBy 
+  serverTimestamp, query, orderBy, getDoc
 } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 
 const Payments = () => {
+  const navigate = useNavigate();
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [allPayments, setAllPayments] = useState([]);
   const [allMembers, setAllMembers] = useState([]);
   const [selectedPaymentIds, setSelectedPaymentIds] = useState(new Set());
@@ -50,7 +53,7 @@ const Payments = () => {
     setStats({ pending, approved, rejected, todayAmount });
   }, []);
 
-  // Define loadData BEFORE useEffect
+  // Define loadData
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
@@ -79,10 +82,39 @@ const Payments = () => {
     }
   }, [calculateStats, showToast]);
 
-  // useEffect AFTER loadData is defined
+  // FIRST useEffect - Admin check (MUST be first)
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    const checkAdmin = async () => {
+      const user = auth.currentUser;
+      if (!user) {
+        navigate('/');
+        return;
+      }
+      
+      try {
+        const userDoc = await getDoc(doc(db, "members", user.uid));
+        const role = userDoc.data()?.role;
+        
+        if (role !== 'admin') {
+          navigate('/');
+        }
+      } catch (error) {
+        console.error("Auth error:", error);
+        navigate('/');
+      } finally {
+        setCheckingAuth(false);
+      }
+    };
+    
+    checkAdmin();
+  }, [navigate]);
+
+  // SECOND useEffect - Load data after auth check
+  useEffect(() => {
+    if (!checkingAuth) {
+      loadData();
+    }
+  }, [checkingAuth, loadData]);
 
   // Define remaining functions with useCallback
   const getFilteredPayments = useCallback(() => {
@@ -237,6 +269,16 @@ const Payments = () => {
   }, []);
 
   const filtered = getFilteredPayments();
+
+  // Conditional returns - ONLY at the end, after all hooks
+  if (checkingAuth) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Verifying access...</p>
+      </div>
+    );
+  }
 
   // Loading Skeleton
   if (loading) {
